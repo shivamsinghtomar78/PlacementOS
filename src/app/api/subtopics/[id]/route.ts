@@ -3,6 +3,10 @@ import dbConnect from "@/lib/db";
 import Subtopic from "@/models/Subtopic";
 import DailyProgress from "@/models/DailyProgress";
 import User from "@/models/User";
+import Notification from "@/models/Notification";
+import Subject from "@/models/Subject";
+import { sendNotificationEmail } from "@/lib/mail";
+import { pusherServer } from "@/lib/pusher-server";
 
 async function getUserId(req: NextRequest) {
     const uid = req.headers.get("x-firebase-uid");
@@ -67,6 +71,25 @@ export async function PATCH(
                     { $inc: { subtopicsCompleted: 1 } },
                     { upsert: true }
                 );
+
+                // Create Notification
+                const subjectDoc = await Subject.findById(subtopic.subjectId);
+                const notification = await Notification.create({
+                    userId,
+                    title: "Subtopic Mastered! 🎉",
+                    message: `Congratulations! You've mastered "${subtopic.name}" in ${subjectDoc?.name || "your subjects"}.`,
+                    type: "success",
+                });
+
+                // Send Email Notification
+                const userDoc = await User.findById(userId);
+                if (userDoc?.email) {
+                    await sendNotificationEmail(
+                        userDoc.email,
+                        "Subtopic Mastered! 🎉",
+                        `Hi ${userDoc.name},\n\nCongratulations! You've just mastered the subtopic: "${subtopic.name}".\n\nKeep up the great work on your placement preparation!\n\nBest,\nPlacementOS Team`
+                    );
+                }
             }
         }
 
@@ -110,6 +133,10 @@ export async function PATCH(
         if (body.action === "addSession" && body.session) {
             subtopic.sessions.push(body.session);
             subtopic.timeSpent += body.session.duration;
+        }
+
+        if (body.action === "cycleStatus" || body.action === "toggleRevision") {
+            await pusherServer?.trigger(`user-${userId}`, "dashboard-update", {});
         }
 
         await subtopic.save();

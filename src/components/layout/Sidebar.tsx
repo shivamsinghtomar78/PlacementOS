@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     LayoutDashboard,
     BookOpen,
-    GraduationCap,
     BarChart3,
     Target,
     Settings,
@@ -24,7 +23,6 @@ import { useState } from "react";
 const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/subjects", label: "Subjects", icon: BookOpen },
-    { href: "/dashboard/mocks", label: "Mock Interviews", icon: GraduationCap },
     { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
     { href: "/dashboard/placement-mode", label: "Placement Mode", icon: Zap },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },

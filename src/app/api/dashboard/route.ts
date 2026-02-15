@@ -6,6 +6,8 @@ import Subtopic from "@/models/Subtopic";
 import DailyProgress from "@/models/DailyProgress";
 import User from "@/models/User";
 
+export const dynamic = 'force-dynamic';
+
 async function getUserId(req: NextRequest) {
     const uid = req.headers.get("x-firebase-uid");
     if (!uid) return null;
@@ -62,33 +64,8 @@ export async function GET(req: NextRequest) {
             .filter((s) => s.total > 0)
             .sort((a, b) => a.progress - b.progress)[0] || null;
 
-        // Streak calculation
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        let streak = 0;
-        let checkDate = new Date(today);
-
-        while (true) {
-            const progress = await DailyProgress.findOne({
-                userId,
-                date: checkDate,
-            });
-            if (progress && progress.subtopicsCompleted > 0) {
-                streak++;
-                checkDate.setDate(checkDate.getDate() - 1);
-            } else {
-                break;
-            }
-        }
-
-        // Weekly stats (last 30 days)
-        const thirtyDaysAgo = new Date(today);
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-        const dailyStats = await DailyProgress.find({
-            userId,
-            date: { $gte: thirtyDaysAgo },
-        }).sort({ date: 1 });
 
         // Heatmap data (last 365 days)
         const yearAgo = new Date(today);
@@ -97,7 +74,35 @@ export async function GET(req: NextRequest) {
         const heatmapData = await DailyProgress.find({
             userId,
             date: { $gte: yearAgo },
-        }).sort({ date: 1 });
+        }).sort({ date: -1 }); // Sort descending for easier streak calculation
+
+        // dailyStats (last 30 days) for weekly chart
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const dailyStats = heatmapData
+            .filter(d => new Date(d.date) >= thirtyDaysAgo)
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        // Streak calculation using heatmapData
+        let streak = 0;
+        let checkDate = new Date(today);
+
+        for (const day of heatmapData) {
+            const dayDate = new Date(day.date);
+            dayDate.setHours(0, 0, 0, 0);
+
+            if (dayDate.getTime() === checkDate.getTime()) {
+                if (day.subtopicsCompleted > 0) {
+                    streak++;
+                    checkDate.setDate(checkDate.getDate() - 1);
+                } else {
+                    break;
+                }
+            } else if (dayDate.getTime() < checkDate.getTime()) {
+                // Gap in dates found
+                break;
+            }
+        }
 
         // Revision due items
         const revisionDue = allSubtopics.filter((s) => {
@@ -128,12 +133,12 @@ export async function GET(req: NextRequest) {
                 revisionDueCount: revisionDue.length,
             },
             subjectProgress,
-            weeklyStats: dailyStats.map((d) => ({
+            weeklyStats: dailyStats.map((d: any) => ({
                 date: d.date,
                 completed: d.subtopicsCompleted,
                 timeSpent: d.timeSpent,
             })),
-            heatmapData: heatmapData.map((d) => ({
+            heatmapData: heatmapData.map((d: any) => ({
                 date: d.date,
                 count: d.subtopicsCompleted,
             })),

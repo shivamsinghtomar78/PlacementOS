@@ -21,13 +21,14 @@ export async function POST(req: NextRequest) {
                 email,
                 name: name || email.split("@")[0],
                 image,
-                targetCompanies: [],
+                placementDeadline: body.placementDeadline ? new Date(body.placementDeadline) : undefined,
+                targetCompanies: body.targetCompanies || [],
                 preferences: {
-                    theme: "dark",
-                    dailyTarget: 5,
-                    focusMode: false,
-                    notifications: true,
-                    placementMode: false,
+                    theme: body.preferences?.theme || "dark",
+                    dailyTarget: body.preferences?.dailyTarget || 5,
+                    focusMode: body.preferences?.focusMode || false,
+                    notifications: body.preferences?.notifications ?? true,
+                    placementMode: body.preferences?.placementMode || false,
                 },
             });
         } else {
@@ -35,6 +36,18 @@ export async function POST(req: NextRequest) {
             if (name) user.name = name;
             if (image) user.image = image;
             user.email = email;
+
+            // Update preferences and metadata if provided
+            if (body.placementDeadline !== undefined) user.placementDeadline = body.placementDeadline;
+            if (body.targetCompanies !== undefined) user.targetCompanies = body.targetCompanies;
+
+            if (body.preferences) {
+                user.preferences = {
+                    ...user.preferences,
+                    ...body.preferences
+                };
+            }
+
             await user.save();
         }
 

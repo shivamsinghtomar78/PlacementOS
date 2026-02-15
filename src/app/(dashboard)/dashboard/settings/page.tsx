@@ -19,7 +19,7 @@ const COMPANIES = [
 ];
 
 export default function SettingsPage() {
-    const { dbUser, user } = useAuth();
+    const { dbUser, user, refreshDbUser } = useAuth();
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [seeding, setSeeding] = useState(false);
@@ -37,6 +37,7 @@ export default function SettingsPage() {
                 ).join(" | ") || "";
                 const skippedMsg = data.skipped?.length ? ` (Skipped: ${data.skipped.join(", ")})` : "";
                 setSeedResult(`✅ ${created}${skippedMsg}`);
+                await refreshDbUser(); // Refresh data after seeding
             } else {
                 setSeedResult(`⚠️ ${data.error}`);
             }
@@ -76,8 +77,15 @@ export default function SettingsPage() {
                     firebaseUid: user?.uid,
                     email: user?.email,
                     name,
+                    preferences: {
+                        dailyTarget,
+                        notifications,
+                    },
+                    placementDeadline,
+                    targetCompanies,
                 }),
             });
+            await refreshDbUser(); // Refresh AuthContext state
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         } catch (error) {

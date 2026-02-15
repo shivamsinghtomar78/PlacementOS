@@ -1,7 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import { pusherClient } from "@/lib/pusher-client";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import {
     BookOpen,
@@ -147,6 +150,9 @@ function HeatmapCalendar({ data }: { data: { date: string; count: number }[] }) 
 }
 
 export default function DashboardPage() {
+    const queryClient = useQueryClient();
+    const { dbUser } = useAuth();
+
     const { data, isLoading } = useQuery({
         queryKey: ["dashboard"],
         queryFn: async () => {
@@ -155,6 +161,19 @@ export default function DashboardPage() {
             return res.json();
         },
     });
+
+    useEffect(() => {
+        if (!dbUser?._id || !pusherClient) return;
+
+        const channel = pusherClient.subscribe(`user-${dbUser._id}`);
+        channel.bind("dashboard-update", () => {
+            queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        });
+
+        return () => {
+            pusherClient?.unsubscribe(`user-${dbUser._id}`);
+        };
+    }, [dbUser?._id, queryClient]);
 
     const stagger = {
         animate: { transition: { staggerChildren: 0.1 } },

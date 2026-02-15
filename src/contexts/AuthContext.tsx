@@ -21,6 +21,7 @@ interface AuthContextType {
     signUp: (email: string, password: string, name: string) => Promise<void>;
     signInWithGoogle: () => Promise<void>;
     signOut: () => Promise<void>;
+    refreshDbUser: () => Promise<void>;
 }
 
 interface DbUser {
@@ -103,9 +104,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setDbUser(null);
     };
 
+    const refreshDbUser = async () => {
+        if (user) {
+            await syncUserToDb(user);
+        }
+    };
+
     return (
         <AuthContext.Provider
-            value={{ user, loading, dbUser, signIn, signUp, signInWithGoogle, signOut }}
+            value={{ user, loading, dbUser, signIn, signUp, signInWithGoogle, signOut, refreshDbUser }}
         >
             {children}
         </AuthContext.Provider>

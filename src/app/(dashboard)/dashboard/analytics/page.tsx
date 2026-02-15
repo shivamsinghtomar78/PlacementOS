@@ -1,7 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import { pusherClient } from "@/lib/pusher-client";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import {
     BarChart3,
@@ -26,6 +29,9 @@ import {
 } from "recharts";
 
 export default function AnalyticsPage() {
+    const queryClient = useQueryClient();
+    const { dbUser } = useAuth();
+
     const { data, isLoading } = useQuery({
         queryKey: ["dashboard"],
         queryFn: async () => {
@@ -34,6 +40,19 @@ export default function AnalyticsPage() {
             return res.json();
         },
     });
+
+    useEffect(() => {
+        if (!dbUser?._id || !pusherClient) return;
+
+        const channel = pusherClient.subscribe(`user-${dbUser._id}`);
+        channel.bind("dashboard-update", () => {
+            queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        });
+
+        return () => {
+            pusherClient?.unsubscribe(`user-${dbUser._id}`);
+        };
+    }, [dbUser?._id, queryClient]);
 
     const subjectProgress = data?.subjectProgress || [];
     const metrics = data?.metrics;
