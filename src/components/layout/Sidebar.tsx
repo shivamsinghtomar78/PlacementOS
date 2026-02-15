@@ -85,7 +85,7 @@ export function Sidebar() {
 
                 {/* Navigation */}
                 <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                    {navItems.map((item) => {
+                    {navItems.map((item, index) => {
                         const isActive =
                             item.href === "/dashboard"
                                 ? pathname === "/dashboard"
@@ -93,28 +93,35 @@ export function Sidebar() {
                         return (
                             <Link key={item.href} href={item.href}>
                                 <motion.div
-                                    whileHover={{ x: 2 }}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    whileHover={{ x: 4, backgroundColor: "rgba(255, 255, 255, 0.05)" }}
+                                    whileTap={{ scale: 0.98 }}
                                     className={cn(
-                                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative",
+                                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden",
                                         isActive
-                                            ? "bg-indigo-500/10 text-indigo-400"
-                                            : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                                            ? "bg-indigo-500/10 text-indigo-400 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]"
+                                            : "text-slate-400 hover:text-white"
                                     )}
                                 >
                                     {isActive && (
                                         <motion.div
                                             layoutId="activeNav"
-                                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-r-full"
+                                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-r-full shadow-[0_0_10px_rgba(99,102,241,0.5)]"
                                             transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                         />
                                     )}
-                                    <item.icon className={cn("w-5 h-5 shrink-0", isActive && "text-indigo-400")} />
+                                    <item.icon className={cn(
+                                        "w-5 h-5 shrink-0 transition-transform duration-300 group-hover:scale-110",
+                                        isActive && "text-indigo-400 drop-shadow-[0_0_3px_rgba(99,102,241,0.5)]"
+                                    )} />
                                     <AnimatePresence mode="wait">
                                         {!collapsed && (
                                             <motion.span
-                                                initial={{ opacity: 0, width: 0 }}
-                                                animate={{ opacity: 1, width: "auto" }}
-                                                exit={{ opacity: 0, width: 0 }}
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: -10 }}
                                                 className="whitespace-nowrap overflow-hidden"
                                             >
                                                 {item.label}
@@ -128,10 +135,10 @@ export function Sidebar() {
                 </nav>
 
                 {/* User Section */}
-                <div className="p-3 border-t border-slate-800/50">
-                    <div className={cn("flex items-center gap-3 px-3 py-2", collapsed && "justify-center")}>
-                        <Avatar className="w-8 h-8 shrink-0">
-                            <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-xs font-bold">
+                <div className="p-3 border-t border-slate-800/50 bg-slate-900/50 backdrop-blur-md">
+                    <div className={cn("flex items-center gap-3 px-3 py-2 rounded-xl transition-colors hover:bg-white/5", collapsed && "justify-center")}>
+                        <Avatar className="w-9 h-9 shrink-0 ring-2 ring-indigo-500/20 ring-offset-2 ring-offset-slate-900">
+                            <AvatarFallback className="bg-gradient-to-br from-indigo-500 via-violet-600 to-fuchsia-600 text-white text-xs font-bold neo-glow">
                                 {(dbUser?.name || user?.displayName || "U")[0].toUpperCase()}
                             </AvatarFallback>
                         </Avatar>

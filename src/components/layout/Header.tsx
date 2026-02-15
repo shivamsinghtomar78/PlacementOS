@@ -76,30 +76,30 @@ export function Header() {
 
     return (
         <>
-            <header className="sticky top-0 z-30 h-16 flex items-center justify-between px-4 lg:px-6 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/50">
+            <header className="sticky top-0 z-30 h-16 flex items-center justify-between px-4 lg:px-6 bg-slate-950/40 backdrop-blur-md border-b border-white/[0.05] shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
                 <div className="flex items-center gap-3">
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setMobileOpen(true)}
-                        className="lg:hidden text-slate-400 hover:text-white"
+                        className="lg:hidden text-slate-400 hover:text-white hover:bg-white/5"
                     >
                         <Menu className="w-5 h-5" />
                     </Button>
 
                     <div className="relative group">
-                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/50 border border-slate-700/50 text-slate-500 text-sm w-64 focus-within:ring-2 focus-within:ring-indigo-500/50 focus-within:border-indigo-500/50 transition-all">
-                            <SearchIcon className="w-4 h-4" />
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/50 border border-white/10 text-slate-500 text-sm w-64 focus-within:ring-2 focus-within:ring-indigo-500/30 focus-within:border-indigo-500/50 focus-within:bg-slate-900 transition-all duration-300">
+                            <SearchIcon className="w-4 h-4 transition-colors group-focus-within:text-indigo-400" />
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onFocus={() => setIsSearching(true)}
-                                placeholder="Search topics..."
-                                className="bg-transparent border-none outline-none text-white w-full placeholder:text-slate-500"
+                                placeholder="Search everything..."
+                                className="bg-transparent border-none outline-none text-white w-full placeholder:text-slate-500 placeholder:font-light"
                             />
                             {searchQuery && (
-                                <button onClick={() => setSearchQuery("")}>
+                                <button onClick={() => setSearchQuery("")} className="hover:scale-110 transition-transform">
                                     <X className="w-3.5 h-3.5 hover:text-white" />
                                 </button>
                             )}
@@ -109,39 +109,45 @@ export function Header() {
                         <AnimatePresence>
                             {isSearching && searchQuery.length > 2 && (
                                 <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 10 }}
-                                    className="absolute top-full left-0 mt-2 w-full max-w-[320px] bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50"
+                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    className="absolute top-full left-0 mt-2 w-full max-w-[350px] bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 p-1"
                                 >
-                                    <div className="max-h-[400px] overflow-y-auto p-2 space-y-1">
+                                    <div className="max-h-[400px] overflow-y-auto p-1 space-y-1">
                                         {searchLoading && (
                                             <p className="text-xs text-slate-500 p-3 italic">Searching...</p>
                                         )}
                                         {!searchLoading && searchResults.length === 0 && (
                                             <p className="text-xs text-slate-500 p-3">No results found</p>
                                         )}
-                                        {searchResults.map((result: any) => (
-                                            <Link
+                                        {searchResults.map((result: any, idx: number) => (
+                                            <motion.div
                                                 key={result.id}
-                                                href={result.link}
-                                                onClick={() => {
-                                                    setSearchQuery("");
-                                                    setIsSearching(false);
-                                                }}
-                                                className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800 transition-colors group"
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: idx * 0.05 }}
                                             >
-                                                <div className={cn(
-                                                    "w-8 h-8 rounded-lg flex items-center justify-center text-sm",
-                                                    result.type === "subject" ? "bg-indigo-500/20" : "bg-slate-800"
-                                                )}>
-                                                    {result.icon || "📄"}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-white truncate">{result.name}</p>
-                                                    <p className="text-[10px] text-slate-500 uppercase tracking-wider">{result.type}</p>
-                                                </div>
-                                            </Link>
+                                                <Link
+                                                    href={result.link}
+                                                    onClick={() => {
+                                                        setSearchQuery("");
+                                                        setIsSearching(false);
+                                                    }}
+                                                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all duration-200 group/item"
+                                                >
+                                                    <div className={cn(
+                                                        "w-9 h-9 rounded-xl flex items-center justify-center text-sm transition-transform duration-300 group-hover/item:scale-110",
+                                                        result.type === "subject" ? "bg-indigo-500/10 text-indigo-400" : "bg-slate-800 text-slate-300"
+                                                    )}>
+                                                        {result.icon || "📄"}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium text-white/90 truncate group-hover/item:text-white">{result.name}</p>
+                                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">{result.type}</p>
+                                                    </div>
+                                                </Link>
+                                            </motion.div>
                                         ))}
                                     </div>
                                 </motion.div>
@@ -156,11 +162,11 @@ export function Header() {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="text-slate-400 hover:text-white hover:bg-slate-800 relative"
+                                className="text-slate-400 hover:text-white hover:bg-white/5 relative transition-all duration-300 active:scale-90"
                             >
-                                <Bell className="w-5 h-5" />
+                                <Bell className="w-5 h-5 transition-transform duration-300 group-hover:rotate-12" />
                                 {unreadCount > 0 && (
-                                    <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-indigo-500 rounded-full border-2 border-slate-950" />
+                                    <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full border-2 border-slate-950 shadow-[0_0_10px_rgba(99,102,241,0.8)]" />
                                 )}
                             </Button>
                         </DropdownMenuTrigger>

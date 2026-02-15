@@ -53,13 +53,13 @@ export default function HomePage() {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", duration: 1.2, delay: 0.2 }}
-          className="relative w-[320px] h-[320px] sm:w-[450px] sm:h-[450px] md:w-[500px] md:h-[500px] rounded-full flex flex-col items-center justify-center text-center p-8 sm:p-12 border border-white/10 shadow-2xl overflow-hidden group"
+          className="relative w-[340px] h-[340px] sm:w-[500px] sm:h-[500px] md:w-[600px] md:h-[600px] rounded-full flex flex-col items-center justify-center text-center p-8 sm:p-12 border border-white/10 shadow-2xl group"
         >
           {/* Glassmorphism Background */}
-          <div className="absolute inset-0 bg-white/[0.03] backdrop-blur-[12px] group-hover:bg-white/[0.05] transition-colors duration-500" />
+          <div className="absolute inset-0 bg-white/[0.03] backdrop-blur-[12px] group-hover:bg-white/[0.05] transition-colors duration-500 rounded-full" />
 
           {/* Internal Glow */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 via-transparent to-white/5 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 via-transparent to-white/5 pointer-events-none rounded-full" />
 
           {/* Minimal Content */}
           <div className="relative z-20 space-y-6">
@@ -67,7 +67,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="text-4xl sm:text-6xl md:text-7xl font-extralight tracking-[0.2em] text-white/95 uppercase"
+              className="text-4xl sm:text-5xl md:text-6xl font-extralight tracking-[0.15em] text-white/95 uppercase"
             >
               Placement<span className="font-semibold text-white">OS</span>
             </motion.h1>
@@ -110,7 +110,7 @@ export default function HomePage() {
           </div>
 
           {/* Subtle particles for atmosphere */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-full opacity-30">
             {[...Array(6)].map((_, i) => (
               <motion.div
                 key={i}
