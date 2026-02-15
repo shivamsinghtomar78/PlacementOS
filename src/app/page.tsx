@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { Target, Sparkles, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -20,127 +20,131 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0c0a]">
+        <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950/50 to-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-500/8 rounded-full blur-[100px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-violet-500/8 rounded-full blur-[100px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[120px]" />
-      </div>
-
-      {/* Grid pattern overlay */}
+    <div className="min-h-screen relative flex items-center justify-center overflow-hidden bg-[#0a0c0a]">
+      {/* Background Image with Overlay */}
       <div
-        className="absolute inset-0 opacity-[0.02]"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[20s] scale-110"
         style={{
-          backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: "40px 40px",
+          backgroundImage: `url('https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&q=80&w=2560')`,
+          filter: 'brightness(0.4) contrast(1.1) saturate(0.8)'
         }}
       />
 
+      {/* Misty haze overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none" />
+      <div className="absolute inset-0 bg-[#0a0c0a]/20 backdrop-blur-[2px]" />
+
+      {/* Main Content Container */}
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="text-center z-10 max-w-3xl"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5 }}
+        className="relative z-10 flex items-center justify-center w-full px-4"
       >
+        {/* The "Shade" - Central Circular Overlay */}
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", duration: 0.8, delay: 0.2 }}
-          className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-500 to-violet-600 mb-8 shadow-2xl shadow-indigo-500/30"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", duration: 1.2, delay: 0.2 }}
+          className="relative w-[320px] h-[320px] sm:w-[450px] sm:h-[450px] md:w-[500px] md:h-[500px] rounded-full flex flex-col items-center justify-center text-center p-8 sm:p-12 border border-white/10 shadow-2xl overflow-hidden group"
         >
-          <Target className="w-10 h-10 text-white" />
-        </motion.div>
+          {/* Glassmorphism Background */}
+          <div className="absolute inset-0 bg-white/[0.03] backdrop-blur-[12px] group-hover:bg-white/[0.05] transition-colors duration-500" />
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium mb-6"
-        >
-          <Sparkles className="w-4 h-4" />
-          AI-Powered Placement Preparation
-        </motion.div>
+          {/* Internal Glow */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 via-transparent to-white/5 pointer-events-none" />
 
-        <motion.h1
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight"
-        >
-          Placement
-          <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-            OS
-          </span>
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="text-xl text-slate-400 mb-10 leading-relaxed max-w-2xl mx-auto"
-        >
-          Your personal placement command center. Track subjects, master topics,
-          schedule revisions, and ace your interviews — all in one intelligent dashboard.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
-        >
-          <Link href="/signup">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-xl shadow-indigo-500/25 text-base px-8 h-12"
-            >
-              Get Started Free <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
-          <Link href="/login">
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-base px-8 h-12"
-            >
-              Sign In
-            </Button>
-          </Link>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 text-center"
-        >
-          {[
-            { label: "Subjects", value: "∞", desc: "Hierarchical tracking" },
-            { label: "Revisions", value: "5x", desc: "Spaced repetition" },
-            { label: "Analytics", value: "Real-time", desc: "Deep insights" },
-            { label: "Mock Prep", value: "Smart", desc: "Interview tracker" },
-          ].map((stat, i) => (
-            <motion.div
-              key={stat.label}
+          {/* Minimal Content */}
+          <div className="relative z-20 space-y-6">
+            <motion.h1
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 + i * 0.1 }}
-              className="p-4 rounded-2xl bg-slate-800/30 border border-slate-700/30"
+              transition={{ delay: 0.6 }}
+              className="text-4xl sm:text-6xl md:text-7xl font-extralight tracking-[0.2em] text-white/95 uppercase"
             >
-              <div className="text-2xl font-bold text-indigo-400">{stat.value}</div>
-              <div className="text-sm font-medium text-white mt-1">{stat.label}</div>
-              <div className="text-xs text-slate-500 mt-0.5">{stat.desc}</div>
+              Placement<span className="font-semibold text-white">OS</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="text-white/60 text-sm sm:text-base md:text-lg tracking-[0.3em] font-light uppercase max-w-[280px] sm:max-w-md mx-auto"
+            >
+              Master the technical interview.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1 }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8 sm:pt-12"
+            >
+              <Link href="/signup">
+                <Button
+                  variant="link"
+                  className="text-white/90 hover:text-white group text-sm sm:text-base tracking-[0.2em] uppercase font-light p-0 h-auto"
+                >
+                  Join Now <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+
+              <div className="w-1 h-1 rounded-full bg-white/20 hidden sm:block" />
+
+              <Link href="/login">
+                <Button
+                  variant="link"
+                  className="text-white/50 hover:text-white text-sm sm:text-base tracking-[0.2em] uppercase font-light p-0 h-auto"
+                >
+                  Sign In
+                </Button>
+              </Link>
             </motion.div>
-          ))}
+          </div>
+
+          {/* Subtle particles for atmosphere */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 bg-white rounded-full"
+                animate={{
+                  y: [-20, 400],
+                  x: Math.random() * 500,
+                  opacity: [0, 1, 0],
+                }}
+                transition={{
+                  duration: Math.random() * 5 + 5,
+                  repeat: Infinity,
+                  delay: Math.random() * 5,
+                  ease: "linear",
+                }}
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: '-5%',
+                }}
+              />
+            ))}
+          </div>
         </motion.div>
+      </motion.div>
+
+      {/* Aesthetic Footer Detail */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5 }}
+        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 opacity-40 hover:opacity-100 transition-opacity cursor-default"
+      >
+        <div className="w-[1px] h-12 bg-gradient-to-b from-transparent via-white/50 to-transparent" />
+        <span className="text-[10px] tracking-[0.5em] uppercase font-light text-white/50">Scroll to Explore</span>
       </motion.div>
     </div>
   );
