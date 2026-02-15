@@ -85,23 +85,28 @@ export async function GET(req: NextRequest) {
 
         // Streak calculation using heatmapData
         let streak = 0;
+        const streakDates = new Set(
+            heatmapData
+                .filter(d => d.subtopicsCompleted > 0)
+                .map(d => {
+                    const date = new Date(d.date);
+                    date.setHours(0, 0, 0, 0);
+                    return date.getTime();
+                })
+        );
+
         let checkDate = new Date(today);
+        checkDate.setHours(0, 0, 0, 0);
 
-        for (const day of heatmapData) {
-            const dayDate = new Date(day.date);
-            dayDate.setHours(0, 0, 0, 0);
+        // If nothing today, start checking from yesterday. 
+        // But if there's something today, today starts the streak.
+        if (!streakDates.has(checkDate.getTime())) {
+            checkDate.setDate(checkDate.getDate() - 1);
+        }
 
-            if (dayDate.getTime() === checkDate.getTime()) {
-                if (day.subtopicsCompleted > 0) {
-                    streak++;
-                    checkDate.setDate(checkDate.getDate() - 1);
-                } else {
-                    break;
-                }
-            } else if (dayDate.getTime() < checkDate.getTime()) {
-                // Gap in dates found
-                break;
-            }
+        while (streakDates.has(checkDate.getTime())) {
+            streak++;
+            checkDate.setDate(checkDate.getDate() - 1);
         }
 
         // Revision due items

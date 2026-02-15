@@ -115,29 +115,37 @@ export async function PATCH(
                 const rev = subtopic.revision as any;
                 rev[revisionField] = newValue;
 
+                // Daily Activity Tracking for ANY revision milestone
+                if (newValue) {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    await DailyProgress.findOneAndUpdate(
+                        { userId, date: today },
+                        { $inc: { subtopicsCompleted: 1 } },
+                        { upsert: true }
+                    );
+
+                    // Milestone Notification
+                    const subjectDoc = await Subject.findById(subtopic.subjectId);
+                    const milestoneNames: Record<string, string> = {
+                        learned: "Mastered",
+                        revised1: "First Revision",
+                        revised2: "Second Revision",
+                        revised3: "Third Revision",
+                        finalRevised: "Final Revision"
+                    };
+
+                    await Notification.create({
+                        userId,
+                        title: `${milestoneNames[revisionField] || "Milestone"} Reached! 🚀`,
+                        message: `Great job! You've completed the ${milestoneNames[revisionField] || "revision"} for "${subtopic.name}" in ${subjectDoc?.name || "your subjects"}.`,
+                        type: "success",
+                    });
+                }
+
                 // Sync status if "learned" is toggled
                 if (revisionField === "learned") {
-                    const oldStatus = subtopic.status;
                     subtopic.status = newValue ? 2 : 0;
-
-                    // Trigger completion logic if marking as learned
-                    if (newValue && oldStatus !== 2) {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        await DailyProgress.findOneAndUpdate(
-                            { userId, date: today },
-                            { $inc: { subtopicsCompleted: 1 } },
-                            { upsert: true }
-                        );
-
-                        const subjectDoc = await Subject.findById(subtopic.subjectId);
-                        await Notification.create({
-                            userId,
-                            title: "Subtopic Mastered! 🎉",
-                            message: `Congratulations! You've mastered "${subtopic.name}" in ${subjectDoc?.name || "your subjects"}.`,
-                            type: "success",
-                        });
-                    }
                 }
 
                 // Set date for this revision
