@@ -60,10 +60,21 @@ export async function PATCH(
         // Handle status cycling
         if (body.action === "cycleStatus") {
             const oldStatus = subtopic.status;
-            subtopic.status = ((oldStatus + 1) % 3) as 0 | 1 | 2;
+            const newStatus = ((oldStatus + 1) % 3) as 0 | 1 | 2;
+            subtopic.status = newStatus;
+
+            // Sync with learned revision
+            if (newStatus === 2) {
+                subtopic.revision.learned = true;
+                subtopic.revision.learnedDate = new Date();
+                subtopic.revision.lastRevisedDate = new Date();
+            } else {
+                subtopic.revision.learned = false;
+                subtopic.revision.learnedDate = undefined;
+            }
 
             // Track daily progress when completing
-            if (subtopic.status === 2 && oldStatus !== 2) {
+            if (newStatus === 2 && oldStatus !== 2) {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 await DailyProgress.findOneAndUpdate(
@@ -74,7 +85,7 @@ export async function PATCH(
 
                 // Create Notification
                 const subjectDoc = await Subject.findById(subtopic.subjectId);
-                const notification = await Notification.create({
+                await Notification.create({
                     userId,
                     title: "Subtopic Mastered! 🎉",
                     message: `Congratulations! You've mastered "${subtopic.name}" in ${subjectDoc?.name || "your subjects"}.`,
@@ -99,13 +110,39 @@ export async function PATCH(
             const currentValue = subtopic.revision[revisionField];
 
             if (typeof currentValue === "boolean") {
+                const newValue = !currentValue;
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const rev = subtopic.revision as any;
-                rev[revisionField] = !currentValue;
+                rev[revisionField] = newValue;
+
+                // Sync status if "learned" is toggled
+                if (revisionField === "learned") {
+                    const oldStatus = subtopic.status;
+                    subtopic.status = newValue ? 2 : 0;
+
+                    // Trigger completion logic if marking as learned
+                    if (newValue && oldStatus !== 2) {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        await DailyProgress.findOneAndUpdate(
+                            { userId, date: today },
+                            { $inc: { subtopicsCompleted: 1 } },
+                            { upsert: true }
+                        );
+
+                        const subjectDoc = await Subject.findById(subtopic.subjectId);
+                        await Notification.create({
+                            userId,
+                            title: "Subtopic Mastered! 🎉",
+                            message: `Congratulations! You've mastered "${subtopic.name}" in ${subjectDoc?.name || "your subjects"}.`,
+                            type: "success",
+                        });
+                    }
+                }
 
                 // Set date for this revision
                 const dateField = `${revisionField}Date`;
-                if (!currentValue) {
+                if (newValue) {
                     rev[dateField] = new Date();
                     subtopic.revision.lastRevisedDate = new Date();
                 } else {

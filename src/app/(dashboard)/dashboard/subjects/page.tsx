@@ -374,6 +374,7 @@ function SubtopicRow({ subtopic, topicId }: { subtopic: Record<string, unknown>;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["subtopics", topicId] });
+            queryClient.invalidateQueries({ queryKey: ["dashboard"] });
         },
     });
 
