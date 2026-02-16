@@ -3,7 +3,7 @@ import dbConnect from "@/lib/db";
 import Subject from "@/models/Subject";
 import Topic from "@/models/Topic";
 import Subtopic from "@/models/Subtopic";
-import User from "@/models/User";
+import { getAuthUserId, unauthorized } from "@/lib/auth";
 
 // ─── DSA (Concept Revision) ────────────────────────────────────────────────
 const DSA_SYLLABUS = [
@@ -860,14 +860,10 @@ const SUBJECTS = [
 
 export async function POST(req: NextRequest) {
     try {
-        const uid = req.headers.get("x-firebase-uid");
-        if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         await dbConnect();
-        const user = await User.findOne({ firebaseUid: uid });
-        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
-
-        const userId = user._id;
         const results: { subject: string; topics: number; subtopics: number }[] = [];
         const skipped: string[] = [];
 

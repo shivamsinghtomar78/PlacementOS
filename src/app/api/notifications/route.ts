@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/db";
+import { getAuthUserId, unauthorized } from "@/lib/auth";
 import Notification from "@/models/Notification";
-import User from "@/models/User";
-
-async function getUserId(req: NextRequest) {
-    const uid = req.headers.get("x-firebase-uid");
-    if (!uid) return null;
-    await dbConnect();
-    const user = await User.findOne({ firebaseUid: uid });
-    return user?._id;
-}
+import { notificationPatchSchema, parseBody } from "@/lib/validations";
 
 export async function GET(req: NextRequest) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const notifications = await Notification.find({ userId })
             .sort({ createdAt: -1 })
@@ -29,18 +21,24 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const body = await req.json();
-        const { notificationId, action } = body;
+        const parsed = parseBody(notificationPatchSchema, body);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
 
-        if (action === "markAsRead") {
+        if (parsed.data.action === "markAsRead") {
+            if (!parsed.data.notificationId) {
+                return NextResponse.json({ error: "notificationId is required for markAsRead" }, { status: 400 });
+            }
             await Notification.updateOne(
-                { _id: notificationId, userId },
+                { _id: parsed.data.notificationId, userId },
                 { read: true }
             );
-        } else if (action === "markAllAsRead") {
+        } else if (parsed.data.action === "markAllAsRead") {
             await Notification.updateMany(
                 { userId, read: false },
                 { read: true }

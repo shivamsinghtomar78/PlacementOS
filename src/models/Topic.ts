@@ -32,7 +32,7 @@ const TopicSchema = new Schema<ITopic>(
     { timestamps: true }
 );
 
-TopicSchema.index({ subjectId: 1, order: 1 });
+TopicSchema.index({ subjectId: 1, userId: 1, order: 1 });
 TopicSchema.index({ userId: 1 });
 
 const Topic: Model<ITopic> =

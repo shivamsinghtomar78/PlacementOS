@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/db";
+import { getAuthUserId, unauthorized } from "@/lib/auth";
 import Subtopic from "@/models/Subtopic";
 import DailyProgress from "@/models/DailyProgress";
 import User from "@/models/User";
@@ -7,14 +7,7 @@ import Notification from "@/models/Notification";
 import Subject from "@/models/Subject";
 import { sendNotificationEmail } from "@/lib/mail";
 import { pusherServer } from "@/lib/pusher-server";
-
-async function getUserId(req: NextRequest) {
-    const uid = req.headers.get("x-firebase-uid");
-    if (!uid) return null;
-    await dbConnect();
-    const user = await User.findOne({ firebaseUid: uid });
-    return user?._id;
-}
+import { subtopicPatchSchema, updateSubtopicSchema, parseBody } from "@/lib/validations";
 
 // PUT /api/subtopics/[id] — Update subtopic
 export async function PUT(
@@ -22,15 +15,19 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const { id } = await params;
         const body = await req.json();
+        const parsed = parseBody(updateSubtopicSchema, body);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
 
         const subtopic = await Subtopic.findOneAndUpdate(
             { _id: id, userId },
-            { $set: body },
+            { $set: parsed.data },
             { new: true }
         );
 
@@ -48,17 +45,21 @@ export async function PATCH(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const { id } = await params;
         const body = await req.json();
+        const parsed = parseBody(subtopicPatchSchema, body);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
 
         const subtopic = await Subtopic.findOne({ _id: id, userId });
         if (!subtopic) return NextResponse.json({ error: "Subtopic not found" }, { status: 404 });
 
         // Handle status cycling
-        if (body.action === "cycleStatus") {
+        if (parsed.data.action === "cycleStatus") {
             const oldStatus = subtopic.status;
             const newStatus = ((oldStatus + 1) % 3) as 0 | 1 | 2;
             subtopic.status = newStatus;
@@ -105,8 +106,8 @@ export async function PATCH(
         }
 
         // Handle revision toggle
-        if (body.action === "toggleRevision" && body.field) {
-            const revisionField = body.field as keyof typeof subtopic.revision;
+        if (parsed.data.action === "toggleRevision" && parsed.data.field) {
+            const revisionField = parsed.data.field as keyof typeof subtopic.revision;
             const currentValue = subtopic.revision[revisionField];
 
             if (typeof currentValue === "boolean") {
@@ -160,27 +161,34 @@ export async function PATCH(
         }
 
         // Handle notes update
-        if (body.notes !== undefined) {
-            subtopic.notes = body.notes;
+        if (parsed.data.notes !== undefined) {
+            subtopic.notes = parsed.data.notes;
         }
 
         // Handle company tags
-        if (body.companyTags !== undefined) {
-            subtopic.companyTags = body.companyTags;
+        if (parsed.data.companyTags !== undefined) {
+            subtopic.companyTags = parsed.data.companyTags;
         }
 
         // Handle resume alignment
-        if (body.resumeAligned !== undefined) {
-            subtopic.resumeAligned = body.resumeAligned;
+        if (parsed.data.resumeAligned !== undefined) {
+            subtopic.resumeAligned = parsed.data.resumeAligned;
         }
 
         // Handle time session
-        if (body.action === "addSession" && body.session) {
-            subtopic.sessions.push(body.session);
-            subtopic.timeSpent += body.session.duration;
+        if (parsed.data.action === "addSession" && parsed.data.session) {
+            const sessionData = {
+                ...parsed.data.session,
+                sessionDate: parsed.data.session.sessionDate
+                    ? new Date(parsed.data.session.sessionDate)
+                    : new Date(),
+            };
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            subtopic.sessions.push(sessionData as any);
+            subtopic.timeSpent += parsed.data.session.duration;
         }
 
-        if (body.action === "cycleStatus" || body.action === "toggleRevision") {
+        if (parsed.data.action === "cycleStatus" || parsed.data.action === "toggleRevision") {
             await pusherServer?.trigger(`user-${userId}`, "dashboard-update", {});
         }
 
@@ -198,8 +206,8 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const { id } = await params;
         const subtopic = await Subtopic.findOneAndDelete({ _id: id, userId });

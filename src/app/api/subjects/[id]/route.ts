@@ -1,17 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/db";
+import { getAuthUserId, unauthorized } from "@/lib/auth";
 import Subject from "@/models/Subject";
 import Topic from "@/models/Topic";
 import Subtopic from "@/models/Subtopic";
-import User from "@/models/User";
-
-async function getUserId(req: NextRequest) {
-    const uid = req.headers.get("x-firebase-uid");
-    if (!uid) return null;
-    await dbConnect();
-    const user = await User.findOne({ firebaseUid: uid });
-    return user?._id;
-}
+import { updateSubjectSchema, parseBody } from "@/lib/validations";
 
 // PUT /api/subjects/[id] — Update subject
 export async function PUT(
@@ -19,27 +11,28 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const { id } = await params;
         const body = await req.json();
+        const parsed = parseBody(updateSubjectSchema, body);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
+
+        const updateData: Record<string, unknown> = {};
+        if (parsed.data.name !== undefined) updateData.name = parsed.data.name;
+        if (parsed.data.description !== undefined) updateData.description = parsed.data.description;
+        if (parsed.data.icon !== undefined) updateData.icon = parsed.data.icon;
+        if (parsed.data.color !== undefined) updateData.color = parsed.data.color;
+        if (parsed.data.order !== undefined) updateData.order = parsed.data.order;
+        if (parsed.data.targetCompletionDate !== undefined) updateData.targetCompletionDate = parsed.data.targetCompletionDate;
+        if (parsed.data.estimatedHours !== undefined) updateData.estimatedHours = parsed.data.estimatedHours;
 
         const subject = await Subject.findOneAndUpdate(
             { _id: id, userId },
-            {
-                $set: {
-                    ...(body.name && { name: body.name }),
-                    ...(body.description !== undefined && { description: body.description }),
-                    ...(body.icon && { icon: body.icon }),
-                    ...(body.color && { color: body.color }),
-                    ...(body.order !== undefined && { order: body.order }),
-                    ...(body.targetCompletionDate !== undefined && {
-                        targetCompletionDate: body.targetCompletionDate,
-                    }),
-                    ...(body.estimatedHours !== undefined && { estimatedHours: body.estimatedHours }),
-                },
-            },
+            { $set: updateData },
             { new: true }
         );
 
@@ -60,8 +53,8 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const { id } = await params;
 

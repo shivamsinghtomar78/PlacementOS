@@ -1,39 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/db";
+import { getAuthUserId, unauthorized } from "@/lib/auth";
 import Topic from "@/models/Topic";
 import Subtopic from "@/models/Subtopic";
-import User from "@/models/User";
-
-async function getUserId(req: NextRequest) {
-    const uid = req.headers.get("x-firebase-uid");
-    if (!uid) return null;
-    await dbConnect();
-    const user = await User.findOne({ firebaseUid: uid });
-    return user?._id;
-}
+import { updateTopicSchema, parseBody } from "@/lib/validations";
 
 export async function PUT(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const { id } = await params;
         const body = await req.json();
+        const parsed = parseBody(updateTopicSchema, body);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
+
+        const updateData: Record<string, unknown> = {};
+        if (parsed.data.name !== undefined) updateData.name = parsed.data.name;
+        if (parsed.data.description !== undefined) updateData.description = parsed.data.description;
+        if (parsed.data.difficulty !== undefined) updateData.difficulty = parsed.data.difficulty;
+        if (parsed.data.order !== undefined) updateData.order = parsed.data.order;
+        if (parsed.data.estimatedHours !== undefined) updateData.estimatedHours = parsed.data.estimatedHours;
 
         const topic = await Topic.findOneAndUpdate(
             { _id: id, userId },
-            {
-                $set: {
-                    ...(body.name && { name: body.name }),
-                    ...(body.description !== undefined && { description: body.description }),
-                    ...(body.difficulty && { difficulty: body.difficulty }),
-                    ...(body.order !== undefined && { order: body.order }),
-                    ...(body.estimatedHours !== undefined && { estimatedHours: body.estimatedHours }),
-                },
-            },
+            { $set: updateData },
             { new: true }
         );
 
@@ -50,8 +45,8 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const { id } = await params;
 

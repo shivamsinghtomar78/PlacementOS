@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
+import { authSyncSchema, parseBody } from "@/lib/validations";
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { firebaseUid, email, name, image } = body;
-
-        if (!firebaseUid || !email) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        const parsed = parseBody(authSyncSchema, body);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
+
+        const { firebaseUid, email, name, image } = parsed.data;
 
         await dbConnect();
 
@@ -21,14 +23,14 @@ export async function POST(req: NextRequest) {
                 email,
                 name: name || email.split("@")[0],
                 image,
-                placementDeadline: body.placementDeadline ? new Date(body.placementDeadline) : undefined,
-                targetCompanies: body.targetCompanies || [],
+                placementDeadline: parsed.data.placementDeadline ? new Date(parsed.data.placementDeadline) : undefined,
+                targetCompanies: parsed.data.targetCompanies || [],
                 preferences: {
-                    theme: body.preferences?.theme || "dark",
-                    dailyTarget: body.preferences?.dailyTarget || 5,
-                    focusMode: body.preferences?.focusMode || false,
-                    notifications: body.preferences?.notifications ?? true,
-                    placementMode: body.preferences?.placementMode || false,
+                    theme: parsed.data.preferences?.theme || "dark",
+                    dailyTarget: parsed.data.preferences?.dailyTarget || 5,
+                    focusMode: parsed.data.preferences?.focusMode || false,
+                    notifications: parsed.data.preferences?.notifications ?? true,
+                    placementMode: parsed.data.preferences?.placementMode || false,
                 },
             });
         } else {
@@ -38,13 +40,13 @@ export async function POST(req: NextRequest) {
             user.email = email;
 
             // Update preferences and metadata if provided
-            if (body.placementDeadline !== undefined) user.placementDeadline = body.placementDeadline;
-            if (body.targetCompanies !== undefined) user.targetCompanies = body.targetCompanies;
+            if (parsed.data.placementDeadline !== undefined) user.placementDeadline = new Date(parsed.data.placementDeadline);
+            if (parsed.data.targetCompanies !== undefined) user.targetCompanies = parsed.data.targetCompanies;
 
-            if (body.preferences) {
+            if (parsed.data.preferences) {
                 user.preferences = {
                     ...user.preferences,
-                    ...body.preferences
+                    ...parsed.data.preferences
                 };
             }
 

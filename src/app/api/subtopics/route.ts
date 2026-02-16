@@ -1,22 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/db";
+import { getAuthUserId, unauthorized } from "@/lib/auth";
 import Subtopic from "@/models/Subtopic";
-import DailyProgress from "@/models/DailyProgress";
-import User from "@/models/User";
-
-async function getUserId(req: NextRequest) {
-    const uid = req.headers.get("x-firebase-uid");
-    if (!uid) return null;
-    await dbConnect();
-    const user = await User.findOne({ firebaseUid: uid });
-    return user?._id;
-}
+import { createSubtopicSchema, parseBody } from "@/lib/validations";
 
 // GET /api/subtopics?topicId=xxx — List subtopics for a topic
 export async function GET(req: NextRequest) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const { searchParams } = new URL(req.url);
         const topicId = searchParams.get("topicId");
@@ -25,7 +16,7 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "topicId is required" }, { status: 400 });
         }
 
-        const subtopics = await Subtopic.find({ userId, topicId }).sort({ order: 1 });
+        const subtopics = await Subtopic.find({ userId, topicId }).sort({ order: 1 }).lean();
         return NextResponse.json({ subtopics });
     } catch (error) {
         console.error("GET subtopics error:", error);
@@ -36,25 +27,23 @@ export async function GET(req: NextRequest) {
 // POST /api/subtopics — Create subtopic
 export async function POST(req: NextRequest) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const body = await req.json();
-        if (!body.topicId || !body.subjectId || !body.name) {
-            return NextResponse.json(
-                { error: "topicId, subjectId, and name are required" },
-                { status: 400 }
-            );
+        const parsed = parseBody(createSubtopicSchema, body);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
 
-        const count = await Subtopic.countDocuments({ userId, topicId: body.topicId });
+        const count = await Subtopic.countDocuments({ userId, topicId: parsed.data.topicId });
 
         const subtopic = await Subtopic.create({
-            topicId: body.topicId,
-            subjectId: body.subjectId,
+            topicId: parsed.data.topicId,
+            subjectId: parsed.data.subjectId,
             userId,
-            name: body.name,
-            description: body.description || "",
+            name: parsed.data.name,
+            description: parsed.data.description || "",
             order: count,
             status: 0,
             revision: {
@@ -65,7 +54,7 @@ export async function POST(req: NextRequest) {
                 finalRevised: false,
             },
             resources: [],
-            companyTags: body.companyTags || [],
+            companyTags: parsed.data.companyTags || [],
             resumeAligned: false,
             timeSpent: 0,
             sessions: [],

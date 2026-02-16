@@ -1,21 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/db";
+import mongoose from "mongoose";
+import { getAuthUserId, unauthorized } from "@/lib/auth";
 import Topic from "@/models/Topic";
-import User from "@/models/User";
+import { createTopicSchema, parseBody } from "@/lib/validations";
 
-async function getUserId(req: NextRequest) {
-    const uid = req.headers.get("x-firebase-uid");
-    if (!uid) return null;
-    await dbConnect();
-    const user = await User.findOne({ firebaseUid: uid });
-    return user?._id;
-}
-
-// GET /api/topics?subjectId=xxx — List topics for a subject
+// GET /api/topics?subjectId=xxx — List topics for a subject with aggregated counts
 export async function GET(req: NextRequest) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const { searchParams } = new URL(req.url);
         const subjectId = searchParams.get("subjectId");
@@ -24,7 +17,40 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "subjectId is required" }, { status: 400 });
         }
 
-        const topics = await Topic.find({ userId, subjectId }).sort({ order: 1 });
+        const topics = await Topic.aggregate([
+            { $match: { userId, subjectId: new mongoose.Types.ObjectId(subjectId) } },
+            { $sort: { order: 1 } },
+            {
+                $lookup: {
+                    from: "subtopics",
+                    localField: "_id",
+                    foreignField: "topicId",
+                    as: "subtopics",
+                },
+            },
+            {
+                $project: {
+                    name: 1,
+                    description: 1,
+                    order: 1,
+                    difficulty: 1,
+                    estimatedHours: 1,
+                    timeSpent: 1,
+                    createdAt: 1,
+                    subtopicCount: { $size: "$subtopics" },
+                    completedSubtopics: {
+                        $size: {
+                            $filter: {
+                                input: "$subtopics",
+                                as: "s",
+                                cond: { $eq: ["$$s.status", 2] },
+                            },
+                        },
+                    },
+                },
+            },
+        ]);
+
         return NextResponse.json({ topics });
     } catch (error) {
         console.error("GET topics error:", error);
@@ -35,24 +61,25 @@ export async function GET(req: NextRequest) {
 // POST /api/topics — Create topic
 export async function POST(req: NextRequest) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const body = await req.json();
-        if (!body.subjectId || !body.name) {
-            return NextResponse.json({ error: "subjectId and name are required" }, { status: 400 });
+        const parsed = parseBody(createTopicSchema, body);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
 
-        const count = await Topic.countDocuments({ userId, subjectId: body.subjectId });
+        const count = await Topic.countDocuments({ userId, subjectId: parsed.data.subjectId });
 
         const topic = await Topic.create({
-            subjectId: body.subjectId,
+            subjectId: parsed.data.subjectId,
             userId,
-            name: body.name,
-            description: body.description || "",
+            name: parsed.data.name,
+            description: parsed.data.description || "",
             order: count,
-            difficulty: body.difficulty || "Beginner",
-            estimatedHours: body.estimatedHours,
+            difficulty: parsed.data.difficulty || "Beginner",
+            estimatedHours: parsed.data.estimatedHours,
         });
 
         return NextResponse.json({ topic }, { status: 201 });

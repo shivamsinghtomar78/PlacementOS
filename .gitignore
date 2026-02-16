@@ -33,9 +33,13 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# Firebase service account keys
+*-firebase-adminsdk-*.json
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+PlacmentOS-9536c-firebase-adminsdk-fbsvc-79e5c6acc7.json

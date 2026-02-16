@@ -4,9 +4,16 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Target, BarChart3, Brain, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+
+const features = [
+  { icon: Target, label: "Track Progress", desc: "Subject-wise completion tracking" },
+  { icon: Brain, label: "Smart Revision", desc: "Spaced repetition system" },
+  { icon: Repeat, label: "Daily Streaks", desc: "Build consistent habits" },
+  { icon: BarChart3, label: "Analytics", desc: "Visual progress insights" },
+];
 
 export default function HomePage() {
   const { user, loading } = useAuth();
@@ -20,132 +27,162 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0c0a]">
-        <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
+        <div className="w-10 h-10 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center overflow-hidden bg-[#0a0c0a]">
-      {/* Background Image with Overlay */}
+    <div className="min-h-screen relative flex flex-col bg-[#0a0a0f] overflow-hidden">
+      {/* Ambient background effects */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-600/[0.07] blur-[120px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-violet-600/[0.05] blur-[120px]" />
+        <div className="absolute top-[30%] right-[20%] w-[300px] h-[300px] rounded-full bg-cyan-500/[0.03] blur-[100px]" />
+      </div>
+
+      {/* Subtle grid pattern */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[20s] scale-110"
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&q=80&w=2560')`,
-          filter: 'brightness(0.4) contrast(1.1) saturate(0.8)'
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: "64px 64px",
         }}
       />
 
-      {/* Misty haze overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none" />
-      <div className="absolute inset-0 bg-[#0a0c0a]/20 backdrop-blur-[2px]" />
-
-      {/* Main Content Container */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.5 }}
-        className="relative z-10 flex items-center justify-center w-full px-4"
+      {/* Navbar */}
+      <motion.nav
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative z-20 flex items-center justify-between px-6 sm:px-12 py-6"
       >
-        {/* The "Shade" - Central Circular Overlay */}
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+            <Target className="w-4 h-4 text-indigo-400" />
+          </div>
+          <span className="text-lg font-semibold text-white tracking-tight">
+            Placement<span className="text-indigo-400">OS</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link href="/login">
+            <Button
+              variant="ghost"
+              className="text-slate-400 hover:text-white text-sm"
+            >
+              Sign In
+            </Button>
+          </Link>
+          <Link href="/signup">
+            <Button className="bg-indigo-500 hover:bg-indigo-600 text-white text-sm px-5">
+              Get Started
+            </Button>
+          </Link>
+        </div>
+      </motion.nav>
+
+      {/* Hero */}
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center -mt-12">
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", duration: 1.2, delay: 0.2 }}
-          className="relative w-[340px] h-[340px] sm:w-[500px] sm:h-[500px] md:w-[600px] md:h-[600px] rounded-full flex flex-col items-center justify-center text-center p-8 sm:p-12 border border-white/10 shadow-2xl group"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="max-w-3xl mx-auto space-y-6"
         >
-          {/* Glassmorphism Background */}
-          <div className="absolute inset-0 bg-white/[0.03] backdrop-blur-[12px] group-hover:bg-white/[0.05] transition-colors duration-500 rounded-full" />
+          {/* Pill badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/5 text-indigo-300 text-xs tracking-wide">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+              Your placement prep, organized
+            </span>
+          </motion.div>
 
-          {/* Internal Glow */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 via-transparent to-white/5 pointer-events-none rounded-full" />
+          {/* Heading */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight">
+            Master every{" "}
+            <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              concept
+            </span>
+            <br />
+            before the interview
+          </h1>
 
-          {/* Minimal Content */}
-          <div className="relative z-20 space-y-6">
-            <motion.h1
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="text-4xl sm:text-5xl md:text-6xl font-extralight tracking-[0.15em] text-white/95 uppercase"
-            >
-              Placement<span className="font-semibold text-white">OS</span>
-            </motion.h1>
+          {/* Subtitle */}
+          <p className="text-base sm:text-lg text-slate-400 max-w-lg mx-auto leading-relaxed">
+            Track subjects, revise with spaced repetition, and build streaks.
+            Everything you need to crack your placement — in one place.
+          </p>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="text-white/60 text-sm sm:text-base md:text-lg tracking-[0.3em] font-light uppercase max-w-[280px] sm:max-w-md mx-auto"
-            >
-              Master the technical interview.
-            </motion.p>
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
+          >
+            <Link href="/signup">
+              <Button
+                size="lg"
+                className="bg-indigo-500 hover:bg-indigo-600 text-white text-sm px-8 h-12 gap-2 group"
+              >
+                Start Preparing
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-slate-800 text-slate-300 hover:bg-slate-800/50 hover:text-white text-sm px-8 h-12"
+              >
+                I have an account
+              </Button>
+            </Link>
+          </motion.div>
+        </motion.div>
 
+        {/* Feature pills */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7, duration: 0.5 }}
+          className="mt-20 sm:mt-24 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-2xl mx-auto w-full"
+        >
+          {features.map((f, i) => (
             <motion.div
+              key={f.label}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8 sm:pt-12"
+              transition={{ delay: 0.8 + i * 0.1 }}
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-slate-900/50 border border-slate-800/50 hover:border-slate-700/50 transition-colors"
             >
-              <Link href="/signup">
-                <Button
-                  variant="link"
-                  className="text-white/90 hover:text-white group text-sm sm:text-base tracking-[0.2em] uppercase font-light p-0 h-auto"
-                >
-                  Join Now <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-
-              <div className="w-1 h-1 rounded-full bg-white/20 hidden sm:block" />
-
-              <Link href="/login">
-                <Button
-                  variant="link"
-                  className="text-white/50 hover:text-white text-sm sm:text-base tracking-[0.2em] uppercase font-light p-0 h-auto"
-                >
-                  Sign In
-                </Button>
-              </Link>
+              <div className="w-9 h-9 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                <f.icon className="w-4 h-4 text-indigo-400" />
+              </div>
+              <span className="text-xs font-medium text-white">{f.label}</span>
+              <span className="text-[10px] text-slate-500 text-center leading-tight">{f.desc}</span>
             </motion.div>
-          </div>
-
-          {/* Subtle particles for atmosphere */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-full opacity-30">
-            {[...Array(6)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 bg-white rounded-full"
-                animate={{
-                  y: [-20, 400],
-                  x: Math.random() * 500,
-                  opacity: [0, 1, 0],
-                }}
-                transition={{
-                  duration: Math.random() * 5 + 5,
-                  repeat: Infinity,
-                  delay: Math.random() * 5,
-                  ease: "linear",
-                }}
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: '-5%',
-                }}
-              />
-            ))}
-          </div>
+          ))}
         </motion.div>
-      </motion.div>
+      </main>
 
-      {/* Aesthetic Footer Detail */}
-      <motion.div
+      {/* Footer */}
+      <motion.footer
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 opacity-40 hover:opacity-100 transition-opacity cursor-default"
+        transition={{ delay: 1.2 }}
+        className="relative z-10 py-8 text-center"
       >
-        <div className="w-[1px] h-12 bg-gradient-to-b from-transparent via-white/50 to-transparent" />
-        <span className="text-[10px] tracking-[0.5em] uppercase font-light text-white/50">Scroll to Explore</span>
-      </motion.div>
+        <p className="text-xs text-slate-700">
+          Built for placement success
+        </p>
+      </motion.footer>
     </div>
   );
 }

@@ -1,21 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/db";
+import { getAuthUserId, unauthorized } from "@/lib/auth";
 import Subject from "@/models/Subject";
 import Topic from "@/models/Topic";
-import User from "@/models/User";
-
-async function getUserId(req: NextRequest) {
-    const uid = req.headers.get("x-firebase-uid");
-    if (!uid) return null;
-    await dbConnect();
-    const user = await User.findOne({ firebaseUid: uid });
-    return user?._id;
-}
 
 export async function GET(req: NextRequest) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const { searchParams } = new URL(req.url);
         const query = searchParams.get("q") || "";
@@ -40,13 +31,13 @@ export async function GET(req: NextRequest) {
                 type: "subject",
                 icon: s.icon,
                 color: s.color,
-                link: `/dashboard/subjects` // Could be more specific if there were deep links
+                link: `/dashboard/subjects`
             })),
             ...topics.map(t => ({
                 id: t._id,
                 name: t.name,
                 type: "topic",
-                link: `/dashboard/subjects` // Navigates to subjects page where it can be expanded
+                link: `/dashboard/subjects`
             }))
         ];
 

@@ -1,23 +1,59 @@
 import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/db";
+import { getAuthUserId, unauthorized } from "@/lib/auth";
 import Subject from "@/models/Subject";
-import User from "@/models/User";
+import { createSubjectSchema, parseBody } from "@/lib/validations";
 
-async function getUserId(req: NextRequest) {
-    const uid = req.headers.get("x-firebase-uid");
-    if (!uid) return null;
-    await dbConnect();
-    const user = await User.findOne({ firebaseUid: uid });
-    return user?._id;
-}
-
-// GET /api/subjects — List all subjects for user
+// GET /api/subjects — List all subjects for user with aggregated counts
 export async function GET(req: NextRequest) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
-        const subjects = await Subject.find({ userId }).sort({ order: 1 });
+        // Use aggregation to get counts in a single query
+        const subjects = await Subject.aggregate([
+            { $match: { userId } },
+            { $sort: { order: 1 } },
+            {
+                $lookup: {
+                    from: "topics",
+                    localField: "_id",
+                    foreignField: "subjectId",
+                    as: "topics",
+                },
+            },
+            {
+                $lookup: {
+                    from: "subtopics",
+                    localField: "_id",
+                    foreignField: "subjectId",
+                    as: "subtopics",
+                },
+            },
+            {
+                $project: {
+                    name: 1,
+                    description: 1,
+                    icon: 1,
+                    color: 1,
+                    order: 1,
+                    targetCompletionDate: 1,
+                    estimatedHours: 1,
+                    createdAt: 1,
+                    topicCount: { $size: "$topics" },
+                    subtopicCount: { $size: "$subtopics" },
+                    completedSubtopics: {
+                        $size: {
+                            $filter: {
+                                input: "$subtopics",
+                                as: "s",
+                                cond: { $eq: ["$$s.status", 2] },
+                            },
+                        },
+                    },
+                },
+            },
+        ]);
+
         return NextResponse.json({ subjects });
     } catch (error) {
         console.error("GET subjects error:", error);
@@ -28,21 +64,26 @@ export async function GET(req: NextRequest) {
 // POST /api/subjects — Create new subject
 export async function POST(req: NextRequest) {
     try {
-        const userId = await getUserId(req);
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const userId = await getAuthUserId(req);
+        if (!userId) return unauthorized();
 
         const body = await req.json();
+        const parsed = parseBody(createSubjectSchema, body);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
+
         const count = await Subject.countDocuments({ userId });
 
         const subject = await Subject.create({
             userId,
-            name: body.name,
-            description: body.description || "",
-            icon: body.icon || "📚",
-            color: body.color || "#6366f1",
+            name: parsed.data.name,
+            description: parsed.data.description || "",
+            icon: parsed.data.icon || "📚",
+            color: parsed.data.color || "#6366f1",
             order: count,
-            targetCompletionDate: body.targetCompletionDate,
-            estimatedHours: body.estimatedHours,
+            targetCompletionDate: parsed.data.targetCompletionDate,
+            estimatedHours: parsed.data.estimatedHours,
         });
 
         return NextResponse.json({ subject }, { status: 201 });

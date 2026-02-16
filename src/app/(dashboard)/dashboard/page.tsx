@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { pusherClient } from "@/lib/pusher-client";
@@ -19,19 +19,20 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-    AreaChart,
-    Area,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip as RechartsTooltip,
-    ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell,
-} from "recharts";
 import { format } from "date-fns";
+import dynamic from "next/dynamic";
+
+// Dynamic imports for charts to improve performance
+const DynamicAreaChart = dynamic(() => import("recharts").then(mod => mod.AreaChart), { ssr: false });
+const DynamicArea = dynamic(() => import("recharts").then(mod => mod.Area), { ssr: false });
+const DynamicXAxis = dynamic(() => import("recharts").then(mod => mod.XAxis), { ssr: false });
+const DynamicYAxis = dynamic(() => import("recharts").then(mod => mod.YAxis), { ssr: false });
+const DynamicCartesianGrid = dynamic(() => import("recharts").then(mod => mod.CartesianGrid), { ssr: false });
+const DynamicTooltip = dynamic(() => import("recharts").then(mod => mod.Tooltip), { ssr: false });
+const DynamicResponsiveContainer = dynamic(() => import("recharts").then(mod => mod.ResponsiveContainer), { ssr: false });
+const DynamicPieChart = dynamic(() => import("recharts").then(mod => mod.PieChart), { ssr: false });
+const DynamicPie = dynamic(() => import("recharts").then(mod => mod.Pie), { ssr: false });
+const DynamicCell = dynamic(() => import("recharts").then(mod => mod.Cell), { ssr: false });
 
 // Animated number counter
 function AnimatedNumber({ value, duration = 1000 }: { value: number; duration?: number }) {
@@ -96,7 +97,7 @@ function CircularProgress({ progress, size = 120, strokeWidth = 10 }: {
 }
 
 // Heatmap calendar
-function HeatmapCalendar({ data }: { data: { date: string; count: number }[] }) {
+const HeatmapCalendar = memo(({ data }: { data: { date: string; count: number }[] }) => {
     const weeks = 52;
     const days = 7;
     const cellSize = 12;
@@ -150,7 +151,9 @@ function HeatmapCalendar({ data }: { data: { date: string; count: number }[] }) 
             </div>
         </div>
     );
-}
+});
+
+HeatmapCalendar.displayName = "HeatmapCalendar";
 
 export default function DashboardPage() {
     const queryClient = useQueryClient();
@@ -396,30 +399,30 @@ export default function DashboardPage() {
                                     Start completing subtopics to see your weekly trend!
                                 </p>
                             ) : (
-                                <ResponsiveContainer width="100%" height={220}>
-                                    <AreaChart data={weeklyStats} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <DynamicResponsiveContainer width="100%" height={220}>
+                                    <DynamicAreaChart data={weeklyStats} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorCompleted" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
                                                 <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                                             </linearGradient>
                                         </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                                        <XAxis
+                                        <DynamicCartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                                        <DynamicXAxis
                                             dataKey="date"
                                             stroke="rgba(255,255,255,0.2)"
                                             tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }}
                                             axisLine={false}
                                             tickLine={false}
-                                            tickFormatter={(v) => format(new Date(v), "MMM d")}
+                                            tickFormatter={(v: string) => format(new Date(v), "MMM d")}
                                         />
-                                        <YAxis
+                                        <DynamicYAxis
                                             stroke="rgba(255,255,255,0.2)"
                                             tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }}
                                             axisLine={false}
                                             tickLine={false}
                                         />
-                                        <RechartsTooltip
+                                        <DynamicTooltip
                                             contentStyle={{
                                                 backgroundColor: "rgba(15, 23, 42, 0.9)",
                                                 border: "1px solid rgba(255,255,255,0.1)",
@@ -430,7 +433,7 @@ export default function DashboardPage() {
                                             itemStyle={{ color: "#fff", fontSize: "12px", fontWeight: "bold" }}
                                             labelStyle={{ color: "rgba(255,255,255,0.5)", fontSize: "10px", marginBottom: "4px" }}
                                         />
-                                        <Area
+                                        <DynamicArea
                                             type="monotone"
                                             dataKey="completed"
                                             stroke="#6366f1"
@@ -439,8 +442,8 @@ export default function DashboardPage() {
                                             strokeWidth={3}
                                             animationDuration={2000}
                                         />
-                                    </AreaChart>
-                                </ResponsiveContainer>
+                                    </DynamicAreaChart>
+                                </DynamicResponsiveContainer>
                             )}
                         </CardContent>
                     </Card>
@@ -485,9 +488,9 @@ export default function DashboardPage() {
                             {subjectProgress.length === 0 ? (
                                 <p className="text-slate-500 text-sm text-center py-8">No data yet</p>
                             ) : (
-                                <ResponsiveContainer width="100%" height={230}>
-                                    <PieChart>
-                                        <Pie
+                                <DynamicResponsiveContainer width="100%" height={230}>
+                                    <DynamicPieChart>
+                                        <DynamicPie
                                             data={subjectProgress.map((s: any) => ({
                                                 name: s.name,
                                                 value: s.total || 1,
@@ -501,14 +504,14 @@ export default function DashboardPage() {
                                             stroke="none"
                                         >
                                             {subjectProgress.map((_: any, i: number) => (
-                                                <Cell
+                                                <DynamicCell
                                                     key={i}
                                                     fill={PIE_COLORS[i % PIE_COLORS.length]}
                                                     className="outline-none"
                                                 />
                                             ))}
-                                        </Pie>
-                                        <RechartsTooltip
+                                        </DynamicPie>
+                                        <DynamicTooltip
                                             contentStyle={{
                                                 backgroundColor: "rgba(15, 23, 42, 0.9)",
                                                 border: "1px solid rgba(255,255,255,0.1)",
@@ -517,8 +520,8 @@ export default function DashboardPage() {
                                             }}
                                             itemStyle={{ color: "#fff", fontSize: "12px", fontWeight: "bold" }}
                                         />
-                                    </PieChart>
-                                </ResponsiveContainer>
+                                    </DynamicPieChart>
+                                </DynamicResponsiveContainer>
                             )}
                         </CardContent>
                     </Card>
