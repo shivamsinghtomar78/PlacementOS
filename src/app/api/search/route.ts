@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUserId, unauthorized } from "@/lib/auth";
 import Subject from "@/models/Subject";
 import Topic from "@/models/Topic";
+import Subtopic from "@/models/Subtopic";
 
 export async function GET(req: NextRequest) {
     try {
@@ -13,12 +14,16 @@ export async function GET(req: NextRequest) {
 
         if (!query) return NextResponse.json({ results: [] });
 
-        const [subjects, topics] = await Promise.all([
+        const [subjects, topics, subtopics] = await Promise.all([
             Subject.find({
                 userId,
                 name: { $regex: query, $options: "i" },
             }).limit(5),
             Topic.find({
+                userId,
+                name: { $regex: query, $options: "i" },
+            }).limit(10),
+            Subtopic.find({
                 userId,
                 name: { $regex: query, $options: "i" },
             }).limit(10),
@@ -37,6 +42,12 @@ export async function GET(req: NextRequest) {
                 id: t._id,
                 name: t.name,
                 type: "topic",
+                link: `/dashboard/subjects`
+            })),
+            ...subtopics.map(st => ({
+                id: st._id,
+                name: st.name,
+                type: "subtopic",
                 link: `/dashboard/subjects`
             }))
         ];

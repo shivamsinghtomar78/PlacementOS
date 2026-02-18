@@ -116,15 +116,8 @@ export async function PATCH(
                 const rev = subtopic.revision as any;
                 rev[revisionField] = newValue;
 
-                // Daily Activity Tracking for ANY revision milestone
+                // Milestone notification (no DailyProgress increment — only cycleStatus counts completions)
                 if (newValue) {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    await DailyProgress.findOneAndUpdate(
-                        { userId, date: today },
-                        { $inc: { subtopicsCompleted: 1 } },
-                        { upsert: true }
-                    );
 
                     // Milestone Notification
                     const subjectDoc = await Subject.findById(subtopic.subjectId);

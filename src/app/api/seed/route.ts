@@ -4,6 +4,18 @@ import Subject from "@/models/Subject";
 import Topic from "@/models/Topic";
 import Subtopic from "@/models/Subtopic";
 import { getAuthUserId, unauthorized } from "@/lib/auth";
+import { ENGINEERING_MATHS_SYLLABUS } from "@/data/engineering-maths";
+import { ENGINEERING_MECHANICS_SYLLABUS } from "@/data/engineering-mechanics";
+import { STRENGTH_OF_MATERIALS_SYLLABUS } from "@/data/strength-of-materials";
+import { THEORY_OF_MACHINES_SYLLABUS } from "@/data/theory-of-machines";
+import { MACHINE_DESIGN_SYLLABUS } from "@/data/machine-design";
+import { THERMODYNAMICS_SYLLABUS } from "@/data/thermodynamics";
+import { HEAT_TRANSFER_SYLLABUS } from "@/data/heat-transfer";
+import { REFRIGERATION_AC_SYLLABUS } from "@/data/refrigeration-ac";
+import { POWER_PLANT_SYLLABUS } from "@/data/power-plant";
+import { FLUID_MECHANICS_SYLLABUS } from "@/data/fluid-mechanics";
+import { MANUFACTURING_SYLLABUS } from "@/data/manufacturing";
+import { INDUSTRIAL_ENGINEERING_SYLLABUS } from "@/data/industrial-engineering";
 
 // ─── DSA (Concept Revision) ────────────────────────────────────────────────
 const DSA_SYLLABUS = [
@@ -855,6 +867,90 @@ const SUBJECTS = [
         icon: "⚙️",
         color: "#ef4444",
         syllabus: OS_SYLLABUS,
+    },
+    {
+        name: "Engineering Mathematics",
+        description: "Complete Mathematics syllabus for ESE, GATE, ISRO, and other technical exams",
+        icon: "🧮",
+        color: "#6366f1",
+        syllabus: ENGINEERING_MATHS_SYLLABUS,
+    },
+    {
+        name: "Engineering Mechanics",
+        description: "Comprehensive mechanics syllabus for ESE, GATE, ISRO, and other technical exams",
+        icon: "🔧",
+        color: "#f59e0b",
+        syllabus: ENGINEERING_MECHANICS_SYLLABUS,
+    },
+    {
+        name: "Strength of Materials",
+        description: "Complete SOM syllabus including stress-strain, SFD-BMD, and failure theories",
+        icon: "🏗️",
+        color: "#ef4444",
+        syllabus: STRENGTH_OF_MATERIALS_SYLLABUS,
+    },
+    {
+        name: "Theory of Machines",
+        description: "Complete TOM syllabus covering mechanisms, kinematics, dynamics, and vibrations",
+        icon: "⚙️",
+        color: "#10b981",
+        syllabus: THEORY_OF_MACHINES_SYLLABUS,
+    },
+    {
+        name: "Machine Design",
+        description: "Complete Machine Design syllabus including failure theories and design of elements",
+        icon: "🖋️",
+        color: "#8b5cf6",
+        syllabus: MACHINE_DESIGN_SYLLABUS,
+    },
+    {
+        name: "Thermodynamics",
+        description: "Comprehensive thermodynamics syllabus covering laws, properties, and relations",
+        icon: "🔥",
+        color: "#f97316",
+        syllabus: THERMODYNAMICS_SYLLABUS,
+    },
+    {
+        name: "Heat Transfer",
+        description: "Complete Heat Transfer syllabus including conduction, convection, and radiation",
+        icon: "🌡️",
+        color: "#f43f5e",
+        syllabus: HEAT_TRANSFER_SYLLABUS,
+    },
+    {
+        name: "Refrigeration & AC",
+        description: "Comprehensive RAC syllabus covering VCRS, VARS, and psychrometry",
+        icon: "❄️",
+        color: "#0ea5e9",
+        syllabus: REFRIGERATION_AC_SYLLABUS,
+    },
+    {
+        name: "Power Plant",
+        description: "Complete Power Plant Engineering syllabus including steam, gas, and nuclear plants",
+        icon: "🏭",
+        color: "#475569",
+        syllabus: POWER_PLANT_SYLLABUS,
+    },
+    {
+        name: "Fluid Mechanics",
+        description: "Complete Fluid Mechanics syllabus including statics, dynamics, and machinery",
+        icon: "💧",
+        color: "#3b82f6",
+        syllabus: FLUID_MECHANICS_SYLLABUS,
+    },
+    {
+        name: "Manufacturing",
+        description: "Complete Manufacturing syllabus including casting, forming, and machining",
+        icon: "🔧",
+        color: "#16a34a",
+        syllabus: MANUFACTURING_SYLLABUS,
+    },
+    {
+        name: "Industrial Engineering",
+        description: "Complete Industrial Engineering syllabus including PPC, inventory, and OR",
+        icon: "📊",
+        color: "#f59e0b",
+        syllabus: INDUSTRIAL_ENGINEERING_SYLLABUS,
     },
 ];
 
