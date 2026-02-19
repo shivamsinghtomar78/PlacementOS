@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, memo } from "react";
+import { useEffect, memo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { pusherClient } from "@/lib/pusher-client";
@@ -22,6 +22,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import dynamic from "next/dynamic";
 
+type SubjectProgress = {
+    _id: string;
+    name: string;
+    icon: string;
+    color: string;
+    total: number;
+    completed: number;
+    inProgress: number;
+    notStarted: number;
+    progress: number;
+};
+
 // Dynamic imports for charts to improve performance
 const DynamicAreaChart = dynamic(() => import("recharts").then(mod => mod.AreaChart), { ssr: false });
 const DynamicArea = dynamic(() => import("recharts").then(mod => mod.Area), { ssr: false });
@@ -35,7 +47,7 @@ const DynamicPie = dynamic(() => import("recharts").then(mod => mod.Pie), { ssr:
 const DynamicCell = dynamic(() => import("recharts").then(mod => mod.Cell), { ssr: false });
 
 // Animated number counter
-function AnimatedNumber({ value, duration = 1000 }: { value: number; duration?: number }) {
+function AnimatedNumber({ value }: { value: number }) {
     return (
         <motion.span
             initial={{ opacity: 0 }}
@@ -133,11 +145,8 @@ const HeatmapCalendar = memo(({ data }: { data: { date: string; count: number }[
                 }}
             >
                 {cells.map((cell, i) => (
-                    <motion.div
+                    <div
                         key={i}
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: (cell.week * 0.01) + (cell.day * 0.02) }}
                         className={`rounded-[2px] ${getColor(cell.count)} transition-all duration-300 hover:scale-150 hover:z-10 cursor-pointer`}
                         style={{
                             width: cellSize,
@@ -352,7 +361,7 @@ export default function DashboardPage() {
                                     No subjects yet. Create your first subject to see progress!
                                 </p>
                             ) : (
-                                subjectProgress.map((subject: any, idx: number) => (
+                                subjectProgress.map((subject: SubjectProgress, idx: number) => (
                                     <div key={subject._id} className="space-y-2">
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm text-white/90 font-medium flex items-center gap-2">
@@ -491,7 +500,7 @@ export default function DashboardPage() {
                                 <DynamicResponsiveContainer width="100%" height={230}>
                                     <DynamicPieChart>
                                         <DynamicPie
-                                            data={subjectProgress.map((s: any) => ({
+                                            data={subjectProgress.map((s: SubjectProgress) => ({
                                                 name: s.name,
                                                 value: s.total || 1,
                                             }))}
@@ -503,7 +512,7 @@ export default function DashboardPage() {
                                             dataKey="value"
                                             stroke="none"
                                         >
-                                            {subjectProgress.map((_: any, i: number) => (
+                                            {subjectProgress.map((_: SubjectProgress, i: number) => (
                                                 <DynamicCell
                                                     key={i}
                                                     fill={PIE_COLORS[i % PIE_COLORS.length]}

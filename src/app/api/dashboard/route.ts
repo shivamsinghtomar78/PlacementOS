@@ -8,6 +8,12 @@ import DailyProgress from "@/models/DailyProgress";
 
 export const dynamic = 'force-dynamic';
 
+type DailyStat = {
+    date: Date;
+    subtopicsCompleted: number;
+    timeSpent: number;
+};
+
 export async function GET(req: NextRequest) {
     try {
         const userId = await getAuthUserId(req);
@@ -140,7 +146,7 @@ export async function GET(req: NextRequest) {
                 })
         );
 
-        let checkDate = new Date(today);
+        const checkDate = new Date(today);
         checkDate.setHours(0, 0, 0, 0);
 
         if (!streakDates.has(checkDate.getTime())) {
@@ -165,12 +171,12 @@ export async function GET(req: NextRequest) {
                 revisionDueCount,
             },
             subjectProgress,
-            weeklyStats: dailyStats.map((d: any) => ({
+            weeklyStats: dailyStats.map((d: DailyStat) => ({
                 date: d.date,
                 completed: d.subtopicsCompleted,
                 timeSpent: d.timeSpent,
             })),
-            heatmapData: heatmapData.map((d: any) => ({
+            heatmapData: heatmapData.map((d: DailyStat) => ({
                 date: d.date,
                 count: d.subtopicsCompleted,
             })),

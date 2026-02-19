@@ -120,6 +120,7 @@ SubtopicSchema.index({ topicId: 1, userId: 1, order: 1 });
 SubtopicSchema.index({ userId: 1 });
 SubtopicSchema.index({ subjectId: 1, userId: 1 });
 SubtopicSchema.index({ status: 1 });
+SubtopicSchema.index({ userId: 1, name: 1 });
 
 const Subtopic: Model<ISubtopic> =
     mongoose.models.Subtopic || mongoose.model<ISubtopic>("Subtopic", SubtopicSchema);

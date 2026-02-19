@@ -9,7 +9,6 @@ import {
     ChevronDown,
     ChevronRight,
     MoreHorizontal,
-    Edit2,
     Trash2,
     BookOpen,
     StickyNote,
@@ -48,11 +47,6 @@ const SUBJECT_ICONS = ["📚", "💻", "🧠", "🌐", "📊", "🔧", "📐", "
 const SUBJECT_COLORS = [
     "#6366f1", "#8b5cf6", "#ec4899", "#f43f5e", "#f97316", "#eab308",
     "#22c55e", "#14b8a6", "#06b6d4", "#3b82f6", "#a855f7", "#6b7280",
-];
-
-const COMPANIES = [
-    "FAANG", "Amazon", "Google", "Meta", "Apple", "Netflix",
-    "Microsoft", "Product-based", "Service-based", "Startup",
 ];
 
 const REVISION_LABELS = [
@@ -359,6 +353,12 @@ function SubtopicRow({ subtopic, topicId }: { subtopic: Record<string, unknown>;
         setNotesValue(sub.notes || "");
     }, [sub.notes]);
 
+    useEffect(() => {
+        return () => {
+            if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+        };
+    }, []);
+
     const statusMutation = useMutation({
         mutationFn: async () => {
             const res = await apiClient(`/api/subtopics/${sub._id}`, {
@@ -411,7 +411,22 @@ function SubtopicRow({ subtopic, topicId }: { subtopic: Record<string, unknown>;
                         body: JSON.stringify({ notes: value }),
                     });
                     if (res.ok) {
-                        queryClient.invalidateQueries({ queryKey: ["subtopics", topicId] });
+                        queryClient.setQueryData(
+                            ["subtopics", topicId],
+                            (
+                                prev:
+                                    | { subtopics?: Array<Record<string, unknown>> }
+                                    | undefined
+                            ) => {
+                                if (!prev?.subtopics) return prev;
+                                return {
+                                    ...prev,
+                                    subtopics: prev.subtopics.map((item) =>
+                                        item._id === sub._id ? { ...item, notes: value } : item
+                                    ),
+                                };
+                            }
+                        );
                     }
                 } finally {
                     setNotesSaving(false);

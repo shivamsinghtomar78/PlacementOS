@@ -29,6 +29,7 @@ const SubjectSchema = new Schema<ISubject>(
 );
 
 SubjectSchema.index({ userId: 1, order: 1 });
+SubjectSchema.index({ userId: 1, name: 1 });
 
 const Subject: Model<ISubject> =
     mongoose.models.Subject || mongoose.model<ISubject>("Subject", SubjectSchema);

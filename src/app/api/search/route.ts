@@ -4,29 +4,45 @@ import Subject from "@/models/Subject";
 import Topic from "@/models/Topic";
 import Subtopic from "@/models/Subtopic";
 
+function escapeRegex(value: string) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export async function GET(req: NextRequest) {
     try {
         const userId = await getAuthUserId(req);
         if (!userId) return unauthorized();
 
         const { searchParams } = new URL(req.url);
-        const query = searchParams.get("q") || "";
+        const query = (searchParams.get("q") || "").trim();
 
-        if (!query) return NextResponse.json({ results: [] });
+        if (query.length < 3) return NextResponse.json({ results: [] });
+
+        const safeQuery = escapeRegex(query).slice(0, 64);
+        const prefixPattern = new RegExp(`^${safeQuery}`, "i");
 
         const [subjects, topics, subtopics] = await Promise.all([
             Subject.find({
                 userId,
-                name: { $regex: query, $options: "i" },
-            }).limit(5),
+                name: { $regex: prefixPattern },
+            })
+                .select("name icon color")
+                .limit(5)
+                .lean(),
             Topic.find({
                 userId,
-                name: { $regex: query, $options: "i" },
-            }).limit(10),
+                name: { $regex: prefixPattern },
+            })
+                .select("name")
+                .limit(10)
+                .lean(),
             Subtopic.find({
                 userId,
-                name: { $regex: query, $options: "i" },
-            }).limit(10),
+                name: { $regex: prefixPattern },
+            })
+                .select("name")
+                .limit(10)
+                .lean(),
         ]);
 
         const results = [

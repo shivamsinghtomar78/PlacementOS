@@ -34,6 +34,7 @@ const TopicSchema = new Schema<ITopic>(
 
 TopicSchema.index({ subjectId: 1, userId: 1, order: 1 });
 TopicSchema.index({ userId: 1 });
+TopicSchema.index({ userId: 1, name: 1 });
 
 const Topic: Model<ITopic> =
     mongoose.models.Topic || mongoose.model<ITopic>("Topic", TopicSchema);

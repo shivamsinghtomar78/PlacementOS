@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Menu, Bell, Search as SearchIcon, X, Check } from "lucide-react";
+import { Menu, Bell, Search as SearchIcon, X } from "lucide-react";
 import { MobileSidebar } from "./Sidebar";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
@@ -15,37 +15,61 @@ import { Badge } from "@/components/ui/badge";
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+type SearchResult = {
+    id: string;
+    name: string;
+    type: "subject" | "topic" | "subtopic";
+    icon?: string;
+    link: string;
+};
+
+type NotificationsResponse = {
+    notifications: Array<{
+        _id: string;
+        title: string;
+        message: string;
+        read: boolean;
+        createdAt: string;
+    }>;
+};
+
+function useDebouncedValue<T>(value: T, delay = 300) {
+    const [debounced, setDebounced] = useState(value);
+
+    useEffect(() => {
+        const handle = setTimeout(() => setDebounced(value), delay);
+        return () => clearTimeout(handle);
+    }, [value, delay]);
+
+    return debounced;
+}
 
 export function Header() {
     const { user, dbUser } = useAuth();
     const [mobileOpen, setMobileOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
+    const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 300);
     const queryClient = useQueryClient();
 
     // Search query
     const { data: searchData, isLoading: searchLoading } = useQuery({
-        queryKey: ["search", searchQuery],
+        queryKey: ["search", debouncedSearchQuery],
         queryFn: async () => {
-            if (!searchQuery) return { results: [] };
-            const res = await apiClient(`/api/search?q=${encodeURIComponent(searchQuery)}`);
+            if (debouncedSearchQuery.length < 3) return { results: [] as SearchResult[] };
+            const res = await apiClient(`/api/search?q=${encodeURIComponent(debouncedSearchQuery)}`);
             if (!res.ok) throw new Error("Search failed");
-            return res.json();
+            return (await res.json()) as { results: SearchResult[] };
         },
-        enabled: searchQuery.length > 2,
+        enabled: debouncedSearchQuery.length > 2,
+        staleTime: 60_000,
+        refetchOnWindowFocus: false,
     });
 
-    useEffect(() => {
-        if (searchData?.results) {
-            setSearchResults(searchData.results);
-        } else {
-            setSearchResults([]);
-        }
-    }, [searchData]);
+    const searchResults = searchData?.results ?? [];
 
     // Notifications query
     const { data: notifyData } = useQuery({
@@ -53,13 +77,14 @@ export function Header() {
         queryFn: async () => {
             const res = await apiClient("/api/notifications");
             if (!res.ok) throw new Error("Failed to fetch notifications");
-            return res.json();
+            return (await res.json()) as NotificationsResponse;
         },
-        refetchInterval: 30000, // Refresh every 30s
+        refetchInterval: 60000,
+        staleTime: 15_000,
     });
 
     const notifications = notifyData?.notifications || [];
-    const unreadCount = notifications.filter((n: any) => !n.read).length;
+    const unreadCount = notifications.filter((n) => !n.read).length;
 
     const readMutation = useMutation({
         mutationFn: async (notificationId: string) => {
@@ -107,7 +132,7 @@ export function Header() {
 
                         {/* Search Results Dropdown */}
                         <AnimatePresence>
-                            {isSearching && searchQuery.length > 2 && (
+                            {isSearching && debouncedSearchQuery.length > 2 && (
                                 <motion.div
                                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -121,7 +146,7 @@ export function Header() {
                                         {!searchLoading && searchResults.length === 0 && (
                                             <p className="text-xs text-slate-500 p-3">No results found</p>
                                         )}
-                                        {searchResults.map((result: any, idx: number) => (
+                                        {searchResults.map((result, idx) => (
                                             <motion.div
                                                 key={result.id}
                                                 initial={{ opacity: 0, x: -10 }}
@@ -186,7 +211,7 @@ export function Header() {
                                         <p className="text-xs text-slate-500">No notifications yet</p>
                                     </div>
                                 ) : (
-                                    notifications.map((n: any) => (
+                                    notifications.map((n) => (
                                         <div
                                             key={n._id}
                                             onClick={() => !n.read && readMutation.mutate(n._id)}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { pusherClient } from "@/lib/pusher-client";
@@ -25,7 +25,6 @@ import {
     CartesianGrid,
     Tooltip as RechartsTooltip,
     ResponsiveContainer,
-    Cell,
 } from "recharts";
 
 export default function AnalyticsPage() {
@@ -100,8 +99,6 @@ export default function AnalyticsPage() {
             bg: "bg-green-500/10",
         });
     }
-
-    const COLORS = ["#f43f5e", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#6366f1"];
 
     if (isLoading) {
         return (

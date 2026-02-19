@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUserId, unauthorized } from "@/lib/auth";
 import Subject from "@/models/Subject";
+import Topic from "@/models/Topic";
+import Subtopic from "@/models/Subtopic";
 import { createSubjectSchema, parseBody } from "@/lib/validations";
 
 // GET /api/subjects — List all subjects for user with aggregated counts
@@ -9,52 +11,57 @@ export async function GET(req: NextRequest) {
         const userId = await getAuthUserId(req);
         if (!userId) return unauthorized();
 
-        // Use aggregation to get counts in a single query
-        const subjects = await Subject.aggregate([
-            { $match: { userId } },
-            { $sort: { order: 1 } },
-            {
-                $lookup: {
-                    from: "topics",
-                    localField: "_id",
-                    foreignField: "subjectId",
-                    as: "topics",
-                },
-            },
-            {
-                $lookup: {
-                    from: "subtopics",
-                    localField: "_id",
-                    foreignField: "subjectId",
-                    as: "subtopics",
-                },
-            },
-            {
-                $project: {
-                    name: 1,
-                    description: 1,
-                    icon: 1,
-                    color: 1,
-                    order: 1,
-                    targetCompletionDate: 1,
-                    estimatedHours: 1,
-                    createdAt: 1,
-                    topicCount: { $size: "$topics" },
-                    subtopicCount: { $size: "$subtopics" },
-                    completedSubtopics: {
-                        $size: {
-                            $filter: {
-                                input: "$subtopics",
-                                as: "s",
-                                cond: { $eq: ["$$s.status", 2] },
-                            },
+        const [subjects, topicCounts, subtopicCounts] = await Promise.all([
+            Subject.find({ userId })
+                .sort({ order: 1 })
+                .lean(),
+            Topic.aggregate([
+                { $match: { userId } },
+                { $group: { _id: "$subjectId", count: { $sum: 1 } } },
+            ]),
+            Subtopic.aggregate([
+                { $match: { userId } },
+                {
+                    $group: {
+                        _id: "$subjectId",
+                        subtopicCount: { $sum: 1 },
+                        completedSubtopics: {
+                            $sum: { $cond: [{ $eq: ["$status", 2] }, 1, 0] },
                         },
                     },
                 },
-            },
+            ]),
         ]);
 
-        return NextResponse.json({ subjects });
+        const topicCountMap = new Map<string, number>(
+            topicCounts.map((item) => [item._id.toString(), item.count])
+        );
+        const subtopicCountMap = new Map<
+            string,
+            { subtopicCount: number; completedSubtopics: number }
+        >(
+            subtopicCounts.map((item) => [
+                item._id.toString(),
+                {
+                    subtopicCount: item.subtopicCount,
+                    completedSubtopics: item.completedSubtopics,
+                },
+            ])
+        );
+
+        const hydrated = subjects.map((subject) => {
+            const id = subject._id.toString();
+            const subtopicStats = subtopicCountMap.get(id);
+
+            return {
+                ...subject,
+                topicCount: topicCountMap.get(id) ?? 0,
+                subtopicCount: subtopicStats?.subtopicCount ?? 0,
+                completedSubtopics: subtopicStats?.completedSubtopics ?? 0,
+            };
+        });
+
+        return NextResponse.json({ subjects: hydrated });
     } catch (error) {
         console.error("GET subjects error:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });

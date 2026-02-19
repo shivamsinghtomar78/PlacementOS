@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
@@ -9,13 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState, useEffect } from "react";
 import { differenceInDays, format } from "date-fns";
 
 export default function PlacementModePage() {
-    const { dbUser } = useAuth();
-    const queryClient = useQueryClient();
-    const [isActive, setIsActive] = useState(false);
+    const { dbUser, user, refreshDbUser } = useAuth();
 
     const { data, isLoading } = useQuery({
         queryKey: ["dashboard"],
@@ -26,21 +23,24 @@ export default function PlacementModePage() {
         },
     });
 
-    useEffect(() => {
-        setIsActive(dbUser?.preferences?.placementMode || false);
-    }, [dbUser]);
+    const isActive = dbUser?.preferences?.placementMode || false;
 
     const toggleMutation = useMutation({
-        mutationFn: async () => {
+        mutationFn: async (nextPlacementMode: boolean) => {
             const res = await apiClient("/api/auth/sync", {
                 method: "POST",
                 body: JSON.stringify({
-                    firebaseUid: dbUser?.firebaseUid,
-                    email: dbUser?.email,
-                    name: dbUser?.name,
+                    firebaseUid: user?.uid,
+                    email: user?.email,
+                    name: dbUser?.name || user?.displayName || user?.email?.split("@")[0] || "User",
+                    preferences: { placementMode: nextPlacementMode },
                 }),
             });
+            if (!res.ok) throw new Error("Failed to update placement mode");
             return res.json();
+        },
+        onSuccess: async () => {
+            await refreshDbUser();
         },
     });
 
@@ -49,14 +49,12 @@ export default function PlacementModePage() {
     const deadline = dbUser?.placementDeadline ? new Date(dbUser.placementDeadline) : null;
     const daysRemaining = deadline ? differenceInDays(deadline, new Date()) : null;
 
-    // Incomplete items
     const incompleteSubjects = subjectProgress.filter(
         (s: { progress: number }) => s.progress < 100
     );
 
     return (
         <div className={`space-y-6 ${isActive ? "placement-mode" : ""}`}>
-            {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -68,14 +66,15 @@ export default function PlacementModePage() {
                     </p>
                 </div>
                 <Button
-                    onClick={() => setIsActive(!isActive)}
+                    onClick={() => toggleMutation.mutate(!isActive)}
+                    disabled={toggleMutation.isPending}
                     className={
                         isActive
                             ? "bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/25"
                             : "bg-indigo-500 hover:bg-indigo-600 text-white"
                     }
                 >
-                    {isActive ? "🔥 Deactivate" : "⚡ Activate"}
+                    {toggleMutation.isPending ? "Saving..." : isActive ? "Deactivate" : "Activate"}
                 </Button>
             </div>
 
@@ -111,7 +110,6 @@ export default function PlacementModePage() {
                 </div>
             ) : (
                 <>
-                    {/* Focus Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Card className="bg-slate-900/50 border-slate-800/50">
                             <CardContent className="pt-6 flex items-center gap-4">
@@ -156,7 +154,6 @@ export default function PlacementModePage() {
                         </Card>
                     </div>
 
-                    {/* Incomplete subjects focus list */}
                     <Card className="bg-slate-900/50 border-slate-800/50">
                         <CardHeader>
                             <CardTitle className="text-white text-lg flex items-center gap-2">
@@ -167,7 +164,7 @@ export default function PlacementModePage() {
                         <CardContent className="space-y-3">
                             {incompleteSubjects.length === 0 ? (
                                 <p className="text-green-400 text-center py-4">
-                                    🎉 All subjects are complete! You&apos;re ready!
+                                    All subjects are complete. You are ready!
                                 </p>
                             ) : (
                                 incompleteSubjects.map((subject: {

@@ -9,8 +9,10 @@ export async function GET(req: NextRequest) {
         if (!userId) return unauthorized();
 
         const notifications = await Notification.find({ userId })
+            .select("title message type link read createdAt")
             .sort({ createdAt: -1 })
-            .limit(20);
+            .limit(20)
+            .lean();
 
         return NextResponse.json({ notifications });
     } catch (error) {
