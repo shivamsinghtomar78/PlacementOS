@@ -29,7 +29,7 @@ const SubjectCompletionChart = dynamic(
 
 export default function AnalyticsPage() {
     const queryClient = useQueryClient();
-    const { dbUser } = useAuth();
+    const { dbUser, user } = useAuth();
     const scopeKey = getClientScopeKey(dbUser?.preferences);
 
     const { data, isLoading, isError } = useQuery({
@@ -39,7 +39,7 @@ export default function AnalyticsPage() {
             if (!res.ok) throw new Error("Failed");
             return res.json();
         },
-        enabled: !!dbUser?._id,
+        enabled: !!dbUser?._id && !!user,
     });
 
     useEffect(() => {

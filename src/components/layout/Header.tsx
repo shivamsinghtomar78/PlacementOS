@@ -72,7 +72,7 @@ export function Header() {
             if (!res.ok) throw new Error("Search failed");
             return (await res.json()) as { results: SearchResult[] };
         },
-        enabled: !!dbUser?._id && debouncedSearchQuery.length > 2,
+        enabled: !!dbUser?._id && !!user && debouncedSearchQuery.length > 2,
         staleTime: 60_000,
         refetchOnWindowFocus: false,
     });
@@ -89,7 +89,7 @@ export function Header() {
         },
         refetchInterval: 60000,
         staleTime: 15_000,
-        enabled: !!dbUser?._id,
+        enabled: !!dbUser?._id && !!user,
     });
 
     const notifications = notifyData?.notifications || [];

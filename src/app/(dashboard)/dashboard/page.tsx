@@ -165,7 +165,7 @@ HeatmapCalendar.displayName = "HeatmapCalendar";
 
 export default function DashboardPage() {
     const queryClient = useQueryClient();
-    const { dbUser } = useAuth();
+    const { dbUser, user } = useAuth();
     const scopeKey = getClientScopeKey(dbUser?.preferences);
 
     const { data, isLoading } = useQuery({
@@ -175,7 +175,7 @@ export default function DashboardPage() {
             if (!res.ok) throw new Error("Failed to fetch dashboard");
             return res.json();
         },
-        enabled: !!dbUser?._id,
+        enabled: !!dbUser?._id && !!user,
     });
     const isError = !isLoading && !data;
 

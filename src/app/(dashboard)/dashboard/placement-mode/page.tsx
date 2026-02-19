@@ -26,7 +26,7 @@ export default function PlacementModePage() {
             if (!res.ok) throw new Error("Failed");
             return res.json();
         },
-        enabled: !!dbUser?._id,
+        enabled: !!dbUser?._id && !!user,
     });
 
     const isPlacementActive = (dbUser?.preferences?.activeTrack || "placement") === "placement";
