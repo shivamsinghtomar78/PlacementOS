@@ -59,9 +59,9 @@ export default function SignUpPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 p-4 relative overflow-hidden">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 relative overflow-hidden">
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-500/8 rounded-full blur-3xl animate-float" />
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/8 rounded-full blur-3xl animate-float" />
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -85,9 +85,12 @@ export default function SignUpPage() {
                         <Sparkles className="w-4 h-4 text-indigo-400" />
                         Start your preparation journey
                     </p>
+                    <p className="text-[11px] text-slate-500 mt-2 uppercase tracking-widest">
+                        One account, two prep modes
+                    </p>
                 </div>
 
-                <Card className="border-slate-800/50 bg-slate-900/80 backdrop-blur-xl shadow-2xl">
+                <Card className="border-slate-800/50 bg-slate-900/80 backdrop-blur-xl shadow-2xl ring-1 ring-white/5">
                     <CardHeader className="space-y-1 pb-4">
                         <CardTitle className="text-2xl text-white">Create account</CardTitle>
                         <CardDescription className="text-slate-400">

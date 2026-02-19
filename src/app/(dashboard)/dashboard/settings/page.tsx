@@ -15,6 +15,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { SARKARI_DEPARTMENTS, TrackMode } from "@/lib/track-context";
+import { PageHeader } from "@/components/common/page-header";
+import { APP_CARD_CLASS } from "@/lib/ui-tokens";
 
 const COMPANIES = [
     "FAANG", "Amazon", "Google", "Meta", "Apple", "Netflix",
@@ -150,18 +152,14 @@ export default function SettingsPage() {
 
     return (
         <div className="space-y-6 max-w-2xl">
-            <div>
-                <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                    <Settings className="w-6 h-6 text-indigo-400" />
-                    Settings
-                </h1>
-                <p className="text-slate-400 text-sm mt-1">
-                    Configure profile, mode, and preparation preferences.
-                </p>
-            </div>
+            <PageHeader
+                icon={<Settings className="w-6 h-6 text-indigo-400" />}
+                title="Settings"
+                subtitle="Configure profile, mode, and preparation preferences."
+            />
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <Card className="bg-slate-900/50 border-slate-800/50">
+                <Card className={APP_CARD_CLASS}>
                     <CardHeader>
                         <CardTitle className="text-white text-lg flex items-center gap-2">
                             <Split className="w-5 h-5 text-indigo-400" />
@@ -205,7 +203,7 @@ export default function SettingsPage() {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <Card className="bg-slate-900/50 border-slate-800/50">
+                <Card className={APP_CARD_CLASS}>
                     <CardHeader>
                         <CardTitle className="text-white text-lg flex items-center gap-2">
                             <UserIcon className="w-5 h-5 text-indigo-400" />
@@ -234,7 +232,7 @@ export default function SettingsPage() {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <Card className="bg-slate-900/50 border-slate-800/50">
+                <Card className={APP_CARD_CLASS}>
                     <CardHeader>
                         <CardTitle className="text-white text-lg flex items-center gap-2">
                             <Target className="w-5 h-5 text-indigo-400" />
@@ -270,7 +268,7 @@ export default function SettingsPage() {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                <Card className="bg-slate-900/50 border-slate-800/50">
+                <Card className={APP_CARD_CLASS}>
                     <CardHeader>
                         <CardTitle className="text-white text-lg">Target Companies</CardTitle>
                     </CardHeader>
@@ -295,7 +293,7 @@ export default function SettingsPage() {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                <Card className="bg-slate-900/50 border-slate-800/50">
+                <Card className={APP_CARD_CLASS}>
                     <CardHeader>
                         <CardTitle className="text-white text-lg flex items-center gap-2">
                             <Bell className="w-5 h-5 text-indigo-400" />
@@ -318,7 +316,7 @@ export default function SettingsPage() {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                <Card className="bg-slate-900/50 border-slate-800/50">
+                <Card className={APP_CARD_CLASS}>
                     <CardHeader>
                         <CardTitle className="text-white text-lg flex items-center gap-2">
                             <Database className="w-5 h-5 text-orange-400" />

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Menu, Bell, Search as SearchIcon, X } from "lucide-react";
+import { Menu, Bell, Search as SearchIcon, X, BriefcaseBusiness, Sparkles } from "lucide-react";
 import { MobileSidebar } from "./Sidebar";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
@@ -56,6 +56,8 @@ export function Header() {
     const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 300);
     const queryClient = useQueryClient();
     const scopeKey = getClientScopeKey(dbUser?.preferences);
+    const activeTrack = dbUser?.preferences?.activeTrack || "placement";
+    const sarkariDept = dbUser?.preferences?.sarkariDepartment || "mechanical";
 
     // Search query
     const { data: searchData, isLoading: searchLoading } = useQuery({
@@ -66,7 +68,7 @@ export function Header() {
             if (!res.ok) throw new Error("Search failed");
             return (await res.json()) as { results: SearchResult[] };
         },
-        enabled: debouncedSearchQuery.length > 2,
+        enabled: !!dbUser?._id && debouncedSearchQuery.length > 2,
         staleTime: 60_000,
         refetchOnWindowFocus: false,
     });
@@ -83,6 +85,7 @@ export function Header() {
         },
         refetchInterval: 60000,
         staleTime: 15_000,
+        enabled: !!dbUser?._id,
     });
 
     const notifications = notifyData?.notifications || [];
@@ -167,7 +170,7 @@ export function Header() {
                                                         "w-9 h-9 rounded-xl flex items-center justify-center text-sm transition-transform duration-300 group-hover/item:scale-110",
                                                         result.type === "subject" ? "bg-indigo-500/10 text-indigo-400" : "bg-slate-800 text-slate-300"
                                                     )}>
-                                                        {result.icon || "📄"}
+                                                        {result.icon || "??"}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-sm font-medium text-white/90 truncate group-hover/item:text-white">{result.name}</p>
@@ -184,6 +187,30 @@ export function Header() {
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <div className="hidden md:flex items-center gap-2">
+                        <Badge className={cn(
+                            "border px-2.5 py-1 text-[10px] uppercase tracking-wider",
+                            activeTrack === "placement"
+                                ? "bg-indigo-500/15 text-indigo-300 border-indigo-500/30"
+                                : "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                        )}>
+                            {activeTrack === "placement" ? (
+                                <>
+                                    <Sparkles className="w-3 h-3 mr-1" /> Placement
+                                </>
+                            ) : (
+                                <>
+                                    <BriefcaseBusiness className="w-3 h-3 mr-1" /> Sarkari
+                                </>
+                            )}
+                        </Badge>
+                        {activeTrack === "sarkari" && (
+                            <Badge className="bg-slate-900/70 text-slate-300 border border-slate-700 text-[10px] uppercase tracking-wider">
+                                {sarkariDept}
+                            </Badge>
+                        )}
+                    </div>
+
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button
@@ -283,3 +310,4 @@ export function Header() {
         </>
     );
 }
+

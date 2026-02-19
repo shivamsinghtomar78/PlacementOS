@@ -35,17 +35,15 @@ type SubjectProgress = {
     progress: number;
 };
 
-// Dynamic imports for charts to improve performance
-const DynamicAreaChart = dynamic(() => import("recharts").then(mod => mod.AreaChart), { ssr: false });
-const DynamicArea = dynamic(() => import("recharts").then(mod => mod.Area), { ssr: false });
-const DynamicXAxis = dynamic(() => import("recharts").then(mod => mod.XAxis), { ssr: false });
-const DynamicYAxis = dynamic(() => import("recharts").then(mod => mod.YAxis), { ssr: false });
-const DynamicCartesianGrid = dynamic(() => import("recharts").then(mod => mod.CartesianGrid), { ssr: false });
-const DynamicTooltip = dynamic(() => import("recharts").then(mod => mod.Tooltip), { ssr: false });
-const DynamicResponsiveContainer = dynamic(() => import("recharts").then(mod => mod.ResponsiveContainer), { ssr: false });
-const DynamicPieChart = dynamic(() => import("recharts").then(mod => mod.PieChart), { ssr: false });
-const DynamicPie = dynamic(() => import("recharts").then(mod => mod.Pie), { ssr: false });
-const DynamicCell = dynamic(() => import("recharts").then(mod => mod.Cell), { ssr: false });
+const PerformanceTrendChart = dynamic(
+    () => import("@/components/dashboard/PerformanceTrendChart"),
+    { ssr: false, loading: () => <Skeleton className="h-[220px] w-full bg-slate-800/50" /> }
+);
+
+const CurriculumFocusChart = dynamic(
+    () => import("@/components/dashboard/CurriculumFocusChart"),
+    { ssr: false, loading: () => <Skeleton className="h-[230px] w-full bg-slate-800/50" /> }
+);
 
 // Animated number counter
 function AnimatedNumber({ value }: { value: number }) {
@@ -177,6 +175,7 @@ export default function DashboardPage() {
             if (!res.ok) throw new Error("Failed to fetch dashboard");
             return res.json();
         },
+        enabled: !!dbUser?._id,
     });
 
     useEffect(() => {
@@ -223,16 +222,28 @@ export default function DashboardPage() {
     const weeklyStats = data?.weeklyStats || [];
     const heatmapData = data?.heatmapData || [];
 
-    const PIE_COLORS = ["#6366f1", "#8b5cf6", "#a78bfa", "#c4b5fd", "#818cf8", "#6ee7b7"];
-
     return (
         <div className="space-y-6">
             {/* Page Title */}
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-                <h1 className="text-2xl font-bold text-white">Control Center</h1>
-                <p className="text-slate-400 text-sm mt-1">
-                    Track your placement preparation progress
-                </p>
+                <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900/70 via-slate-900/40 to-transparent px-5 py-4">
+                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                        <h1 className="text-2xl font-bold text-white">Control Center</h1>
+                        <span className={cn(
+                            "text-[10px] uppercase tracking-wider border rounded-full px-2.5 py-1",
+                            metrics?.track === "sarkari"
+                                ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
+                                : "border-indigo-500/30 bg-indigo-500/15 text-indigo-300"
+                        )}>
+                            {metrics?.track === "sarkari" ? "Sarkari Mode" : "Placement Mode"}
+                        </span>
+                    </div>
+                    <p className="text-slate-400 text-sm">
+                        {metrics?.track === "sarkari"
+                            ? `Department: ${(metrics?.department || "mechanical").toUpperCase()}`
+                            : "Track your placement preparation progress"}
+                    </p>
+                </div>
             </motion.div>
 
             {/* Metrics Grid */}
@@ -255,7 +266,7 @@ export default function DashboardPage() {
                                     <span className="text-slate-500 text-lg">/{metrics?.totalSubtopics || 0}</span>
                                 </p>
                                 <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                                    <div className="w-2 h-2 rounded-full bg-indigo-500/80" />
                                     <p className="text-xs text-indigo-400/80 font-medium">Mastering topics</p>
                                 </div>
                             </div>
@@ -325,8 +336,8 @@ export default function DashboardPage() {
                         <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-red-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <CardContent className="pt-4 pb-4 flex items-center gap-4 relative z-10">
                             <motion.div
-                                animate={{ scale: [1, 1.1, 1] }}
-                                transition={{ duration: 2, repeat: Infinity }}
+                                animate={{ scale: [1, 1.04, 1] }}
+                                transition={{ duration: 3, repeat: Infinity }}
                                 className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center neo-glow"
                             >
                                 <AlertTriangle className="w-5 h-5 text-red-400" />
@@ -347,7 +358,7 @@ export default function DashboardPage() {
             )}
 
             {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 [content-visibility:auto] [contain-intrinsic-size:540px]">
                 {/* Subject Progress Bars */}
                 <motion.div {...fadeUp} transition={{ delay: 0.4 }}>
                     <Card className="glass-morphism bg-slate-900/40 border-white/5 overflow-hidden">
@@ -410,51 +421,7 @@ export default function DashboardPage() {
                                     Start completing subtopics to see your weekly trend!
                                 </p>
                             ) : (
-                                <DynamicResponsiveContainer width="100%" height={220}>
-                                    <DynamicAreaChart data={weeklyStats} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                        <defs>
-                                            <linearGradient id="colorCompleted" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
-                                                <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <DynamicCartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                                        <DynamicXAxis
-                                            dataKey="date"
-                                            stroke="rgba(255,255,255,0.2)"
-                                            tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }}
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tickFormatter={(v: string) => format(new Date(v), "MMM d")}
-                                        />
-                                        <DynamicYAxis
-                                            stroke="rgba(255,255,255,0.2)"
-                                            tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }}
-                                            axisLine={false}
-                                            tickLine={false}
-                                        />
-                                        <DynamicTooltip
-                                            contentStyle={{
-                                                backgroundColor: "rgba(15, 23, 42, 0.9)",
-                                                border: "1px solid rgba(255,255,255,0.1)",
-                                                borderRadius: "16px",
-                                                backdropFilter: "blur(12px)",
-                                                boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
-                                            }}
-                                            itemStyle={{ color: "#fff", fontSize: "12px", fontWeight: "bold" }}
-                                            labelStyle={{ color: "rgba(255,255,255,0.5)", fontSize: "10px", marginBottom: "4px" }}
-                                        />
-                                        <DynamicArea
-                                            type="monotone"
-                                            dataKey="completed"
-                                            stroke="#6366f1"
-                                            fillOpacity={1}
-                                            fill="url(#colorCompleted)"
-                                            strokeWidth={3}
-                                            animationDuration={2000}
-                                        />
-                                    </DynamicAreaChart>
-                                </DynamicResponsiveContainer>
+                                <PerformanceTrendChart data={weeklyStats} />
                             )}
                         </CardContent>
                     </Card>
@@ -462,7 +429,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Heatmap + Distribution */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 [content-visibility:auto] [contain-intrinsic-size:460px]">
                 {/* Activity Heatmap */}
                 <motion.div {...fadeUp} transition={{ delay: 0.6 }} className="lg:col-span-2">
                     <Card className="glass-morphism bg-slate-900/40 border-white/5 h-full">
@@ -499,40 +466,7 @@ export default function DashboardPage() {
                             {subjectProgress.length === 0 ? (
                                 <p className="text-slate-500 text-sm text-center py-8">No data yet</p>
                             ) : (
-                                <DynamicResponsiveContainer width="100%" height={230}>
-                                    <DynamicPieChart>
-                                        <DynamicPie
-                                            data={subjectProgress.map((s: SubjectProgress) => ({
-                                                name: s.name,
-                                                value: s.total || 1,
-                                            }))}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={65}
-                                            outerRadius={90}
-                                            paddingAngle={4}
-                                            dataKey="value"
-                                            stroke="none"
-                                        >
-                                            {subjectProgress.map((_: SubjectProgress, i: number) => (
-                                                <DynamicCell
-                                                    key={i}
-                                                    fill={PIE_COLORS[i % PIE_COLORS.length]}
-                                                    className="outline-none"
-                                                />
-                                            ))}
-                                        </DynamicPie>
-                                        <DynamicTooltip
-                                            contentStyle={{
-                                                backgroundColor: "rgba(15, 23, 42, 0.9)",
-                                                border: "1px solid rgba(255,255,255,0.1)",
-                                                borderRadius: "16px",
-                                                backdropFilter: "blur(12px)",
-                                            }}
-                                            itemStyle={{ color: "#fff", fontSize: "12px", fontWeight: "bold" }}
-                                        />
-                                    </DynamicPieChart>
-                                </DynamicResponsiveContainer>
+                                <CurriculumFocusChart data={subjectProgress} />
                             )}
                         </CardContent>
                     </Card>

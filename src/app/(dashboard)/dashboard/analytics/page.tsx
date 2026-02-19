@@ -17,16 +17,15 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip as RechartsTooltip,
-    ResponsiveContainer,
-} from "recharts";
 import { getClientScopeKey } from "@/lib/track-context";
+import dynamic from "next/dynamic";
+import { PageHeader } from "@/components/common/page-header";
+import { APP_CARD_CLASS } from "@/lib/ui-tokens";
+
+const SubjectCompletionChart = dynamic(
+    () => import("@/components/dashboard/SubjectCompletionChart"),
+    { ssr: false, loading: () => <Skeleton className="h-[300px] w-full bg-slate-800/50" /> }
+);
 
 export default function AnalyticsPage() {
     const queryClient = useQueryClient();
@@ -40,6 +39,7 @@ export default function AnalyticsPage() {
             if (!res.ok) throw new Error("Failed");
             return res.json();
         },
+        enabled: !!dbUser?._id,
     });
 
     useEffect(() => {
@@ -96,7 +96,7 @@ export default function AnalyticsPage() {
         recommendations.push({
             icon: Brain,
             title: "You're Doing Great!",
-            description: `${metrics.overallProgress}% completed — consider switching to Placement Mode for focused revision.`,
+            description: `${metrics.overallProgress}% completed - consider switching to Placement Mode for focused revision.`,
             color: "text-green-400",
             bg: "bg-green-500/10",
         });
@@ -117,15 +117,11 @@ export default function AnalyticsPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                    <BarChart3 className="w-6 h-6 text-indigo-400" />
-                    Analytics & Insights
-                </h1>
-                <p className="text-slate-400 text-sm mt-1">
-                    AI-powered analysis of your preparation progress
-                </p>
-            </div>
+            <PageHeader
+                icon={<BarChart3 className="w-6 h-6 text-indigo-400" />}
+                title="Analytics & Insights"
+                subtitle="AI-powered analysis of your preparation progress"
+            />
 
             {/* AI Recommendations */}
             {recommendations.length > 0 && (
@@ -154,7 +150,7 @@ export default function AnalyticsPage() {
             )}
 
             {/* Subject Completion Chart */}
-            <Card className="bg-slate-900/50 border-slate-800/50">
+            <Card className={APP_CARD_CLASS}>
                 <CardHeader>
                     <CardTitle className="text-white text-lg flex items-center gap-2">
                         <TrendingDown className="w-5 h-5 text-indigo-400" />
@@ -165,44 +161,13 @@ export default function AnalyticsPage() {
                     {subjectProgress.length === 0 ? (
                         <p className="text-slate-500 text-center py-8">No data yet</p>
                     ) : (
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart
-                                data={subjectProgress.map((s: { name: string; completed: number; inProgress: number; notStarted: number }) => ({
-                                    name: s.name.length > 12 ? s.name.slice(0, 12) + "..." : s.name,
-                                    Mastered: s.completed,
-                                    "In Progress": s.inProgress,
-                                    "Not Started": s.notStarted,
-                                }))}
-                                layout="vertical"
-                            >
-                                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                                <XAxis type="number" stroke="#475569" tick={{ fontSize: 10 }} />
-                                <YAxis
-                                    dataKey="name"
-                                    type="category"
-                                    stroke="#475569"
-                                    tick={{ fontSize: 11, fill: "#94a3b8" }}
-                                    width={100}
-                                />
-                                <RechartsTooltip
-                                    contentStyle={{
-                                        backgroundColor: "#1e293b",
-                                        border: "1px solid #334155",
-                                        borderRadius: "12px",
-                                        color: "#fff",
-                                    }}
-                                />
-                                <Bar dataKey="Mastered" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} />
-                                <Bar dataKey="In Progress" stackId="a" fill="#eab308" />
-                                <Bar dataKey="Not Started" stackId="a" fill="#475569" radius={[0, 4, 4, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <SubjectCompletionChart data={subjectProgress} />
                     )}
                 </CardContent>
             </Card>
 
             {/* Weak Areas List */}
-            <Card className="bg-slate-900/50 border-slate-800/50">
+            <Card className={APP_CARD_CLASS}>
                 <CardHeader>
                     <CardTitle className="text-white text-lg flex items-center gap-2">
                         <AlertTriangle className="w-5 h-5 text-red-400" />
@@ -212,7 +177,7 @@ export default function AnalyticsPage() {
                 <CardContent>
                     {weakAreas.length === 0 ? (
                         <p className="text-green-400 text-sm text-center py-4">
-                            🎉 No weak areas! All subjects are above 50% completion.
+                            No weak areas. All subjects are above 50% completion.
                         </p>
                     ) : (
                         <div className="space-y-3">

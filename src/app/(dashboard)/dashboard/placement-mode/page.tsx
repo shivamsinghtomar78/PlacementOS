@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { differenceInDays, format } from "date-fns";
 import { getClientScopeKey } from "@/lib/track-context";
+import { PageHeader } from "@/components/common/page-header";
+import { APP_CARD_CLASS } from "@/lib/ui-tokens";
 
 export default function PlacementModePage() {
     const { dbUser, user, refreshDbUser } = useAuth();
@@ -24,6 +26,7 @@ export default function PlacementModePage() {
             if (!res.ok) throw new Error("Failed");
             return res.json();
         },
+        enabled: !!dbUser?._id,
     });
 
     const isPlacementActive = (dbUser?.preferences?.activeTrack || "placement") === "placement";
@@ -60,28 +63,24 @@ export default function PlacementModePage() {
 
     return (
         <div className={`space-y-6 ${isPlacementActive ? "placement-mode" : ""}`}>
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                        <Split className={`w-6 h-6 ${isPlacementActive ? "text-indigo-400" : "text-emerald-400"}`} />
-                        Mode Switch
-                    </h1>
-                    <p className="text-slate-400 text-sm mt-1">
-                        Placement and Sarkari Nokari use isolated dashboards, streaks, and analytics.
-                    </p>
-                </div>
-                <Button
-                    onClick={() => toggleMutation.mutate(isPlacementActive ? "sarkari" : "placement")}
-                    disabled={toggleMutation.isPending}
-                    className={
-                        isPlacementActive
-                            ? "bg-indigo-500 hover:bg-indigo-600 text-white"
-                            : "bg-emerald-500 hover:bg-emerald-600 text-white"
-                    }
-                >
-                    {toggleMutation.isPending ? "Switching..." : isPlacementActive ? "Switch to Sarkari" : "Switch to Placement"}
-                </Button>
-            </div>
+            <PageHeader
+                icon={<Split className={`w-6 h-6 ${isPlacementActive ? "text-indigo-400" : "text-emerald-400"}`} />}
+                title="Mode Switch"
+                subtitle="Placement and Sarkari Nokari use isolated dashboards, streaks, and analytics."
+                right={
+                    <Button
+                        onClick={() => toggleMutation.mutate(isPlacementActive ? "sarkari" : "placement")}
+                        disabled={toggleMutation.isPending}
+                        className={
+                            isPlacementActive
+                                ? "bg-indigo-500 hover:bg-indigo-600 text-white"
+                                : "bg-emerald-500 hover:bg-emerald-600 text-white"
+                        }
+                    >
+                        {toggleMutation.isPending ? "Switching..." : isPlacementActive ? "Switch to Sarkari" : "Switch to Placement"}
+                    </Button>
+                }
+            />
 
             <div className="flex gap-2">
                 <Badge className={isPlacementActive ? "bg-indigo-500/20 text-indigo-300" : "bg-slate-800 text-slate-400"}>Placement</Badge>
@@ -124,7 +123,7 @@ export default function PlacementModePage() {
             ) : (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card className="bg-slate-900/50 border-slate-800/50">
+                        <Card className={APP_CARD_CLASS}>
                             <CardContent className="pt-6 flex items-center gap-4">
                                 <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
                                     <AlertTriangle className="w-5 h-5 text-red-400" />
@@ -136,7 +135,7 @@ export default function PlacementModePage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-slate-900/50 border-slate-800/50">
+                        <Card className={APP_CARD_CLASS}>
                             <CardContent className="pt-6 flex items-center gap-4">
                                 <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center">
                                     <Clock className="w-5 h-5 text-yellow-400" />
@@ -148,7 +147,7 @@ export default function PlacementModePage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-slate-900/50 border-slate-800/50">
+                        <Card className={APP_CARD_CLASS}>
                             <CardContent className="pt-6 flex items-center gap-4">
                                 <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
                                     <CheckCircle className="w-5 h-5 text-green-400" />
@@ -161,7 +160,7 @@ export default function PlacementModePage() {
                         </Card>
                     </div>
 
-                    <Card className="bg-slate-900/50 border-slate-800/50">
+                    <Card className={APP_CARD_CLASS}>
                         <CardHeader>
                             <CardTitle className="text-white text-lg flex items-center gap-2">
                                 <Lock className="w-5 h-5 text-red-400" />
