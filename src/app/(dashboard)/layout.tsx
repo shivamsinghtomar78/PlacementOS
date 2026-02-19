@@ -31,12 +31,13 @@ export default function DashboardLayout({
         if (!dbUser?._id) return;
         if (seededScopeRef.current === scopeKey) return;
 
-        seededScopeRef.current = scopeKey;
         void (async () => {
             try {
                 const res = await apiClient("/api/seed", { method: "POST" });
                 if (!res.ok) return;
+                seededScopeRef.current = scopeKey;
                 await queryClient.invalidateQueries();
+                await queryClient.refetchQueries({ type: "active" });
             } catch {
                 // No-op: non-blocking background seed sync.
             }

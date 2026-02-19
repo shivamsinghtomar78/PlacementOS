@@ -33,6 +33,9 @@ export default function PlacementModePage() {
 
     const toggleMutation = useMutation({
         mutationFn: async (nextTrack: "placement" | "sarkari") => {
+            if (!user?.uid || !user?.email) {
+                throw new Error("User session not ready. Please refresh and try again.");
+            }
             const res = await apiClient("/api/auth/sync", {
                 method: "POST",
                 body: JSON.stringify({
@@ -42,6 +45,7 @@ export default function PlacementModePage() {
                     preferences: {
                         activeTrack: nextTrack,
                         placementMode: nextTrack === "placement",
+                        sarkariDepartment: dbUser?.preferences?.sarkariDepartment || "mechanical",
                     },
                 }),
             });
@@ -56,7 +60,8 @@ export default function PlacementModePage() {
         },
         onSuccess: async () => {
             await refreshDbUser();
-            queryClient.clear();
+            await queryClient.invalidateQueries();
+            await queryClient.refetchQueries({ type: "active" });
         },
     });
 
@@ -95,6 +100,12 @@ export default function PlacementModePage() {
                     <Badge className="bg-slate-800 text-slate-300">{dbUser?.preferences?.sarkariDepartment || "mechanical"}</Badge>
                 )}
             </div>
+
+            {toggleMutation.isError && (
+                <p className="text-sm text-red-300">
+                    {toggleMutation.error instanceof Error ? toggleMutation.error.message : "Failed to switch mode"}
+                </p>
+            )}
 
             {isPlacementActive && (
                 <motion.div

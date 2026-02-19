@@ -57,6 +57,10 @@ export default function SettingsPage() {
     }, [dbUser]);
 
     const syncModeAndSeed = async (nextTrack: TrackMode, nextDepartment: string) => {
+        if (!user?.uid || !user?.email) {
+            setModeError("User session not ready. Please refresh and try again.");
+            return;
+        }
         setModeSaving(true);
         setModeError(null);
         try {
@@ -90,7 +94,8 @@ export default function SettingsPage() {
             }
 
             await refreshDbUser();
-            queryClient.clear();
+            await queryClient.invalidateQueries();
+            await queryClient.refetchQueries({ type: "active" });
         } catch (error) {
             setModeError(error instanceof Error ? error.message : "Failed to switch mode");
         } finally {
@@ -100,7 +105,7 @@ export default function SettingsPage() {
 
     const handleTrackChange = (nextTrack: TrackMode) => {
         setActiveTrack(nextTrack);
-        const dept = nextTrack === "sarkari" ? sarkariDepartment : "mechanical";
+        const dept = sarkariDepartment;
         void syncModeAndSeed(nextTrack, dept);
     };
 
@@ -112,6 +117,10 @@ export default function SettingsPage() {
     };
 
     const handleSave = async () => {
+        if (!user?.uid || !user?.email) {
+            setSaveError("User session not ready. Please refresh and try again.");
+            return;
+        }
         setSaving(true);
         setSaveError(null);
         try {
@@ -141,7 +150,8 @@ export default function SettingsPage() {
                 applyDbUser(data.user);
             }
             await refreshDbUser();
-            queryClient.clear();
+            await queryClient.invalidateQueries();
+            await queryClient.refetchQueries({ type: "active" });
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         } catch (error) {
