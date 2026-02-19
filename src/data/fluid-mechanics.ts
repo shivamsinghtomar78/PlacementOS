@@ -1,199 +1,222 @@
 export const FLUID_MECHANICS_SYLLABUS = [
-    {
-        name: "1. Fluid Properties",
-        difficulty: "Beginner",
-        subtopics: [
-            "Definition of Fluid and Continuum Hypothesis",
-            "Mass Density, Specific Weight, and Specific Gravity",
-            "Viscosity (Dynamic and Kinematic) - Newton's Law",
-            "Variation of Viscosity with Temperature",
-            "Surface Tension, Capillarity, and Vapor Pressure",
-            "Compressibility and Bulk Modulus"
-        ]
-    },
-    {
-        name: "2. Fluid Statics - Pressure Measurement",
-        difficulty: "Beginner",
-        subtopics: [
-            "Pressure at a Point (Pascal's Law)",
-            "Hydrostatic Law and Pressure Variation",
-            "Absolute, Gauge, and Vacuum Pressure",
-            "Manometers (Simple and Differential)",
-            "Mechanical Gauges (Bourdon Tube, Diaphragm)"
-        ]
-    },
-    {
-        name: "3. Fluid Statics - Hydrostatic Forces",
-        difficulty: "Intermediate",
-        subtopics: [
-            "Hydrostatic Forces on Plane Horizontal Surfaces",
-            "Forces on Vertical and Inclined Plane Surfaces",
-            "Center of Pressure Calculation",
-            "Hydrostatic Forces on Curved Surfaces",
-            "Pressure Prism Concept"
-        ]
-    },
-    {
-        name: "4. Buoyancy and Flotation",
-        difficulty: "Intermediate",
-        subtopics: [
-            "Archimedes' Principle and Buoyancy Force",
-            "Stability of Floating and Submerged Bodies",
-            "Metacenter and Metacentric Height",
-            "Determination of Metacentric Height (Experimental/Theoretical)",
-            "Oscillation of Floating Bodies"
-        ]
-    },
-    {
-        name: "5. Fluid Kinematics",
-        difficulty: "Intermediate",
-        subtopics: [
-            "Types of Fluid Flow (Steady, Unsteady, Uniform, Non-uniform)",
-            "Laminar and Turbulent Flow, Compressible and Incompressible",
-            "Streamlines, Pathlines, Streaklines, and Timelines",
-            "Continuity Equation in 1D, 2D, and 3D",
-            "Velocity Potential and Stream Function",
-            "Vorticity and Circulation (Irrotational Flow)"
-        ]
-    },
-    {
-        name: "6. Fluid Dynamics - Euler and Bernoulli Equations",
-        difficulty: "Intermediate",
-        subtopics: [
-            "Euler's Equation of Motion",
-            "Bernoulli’s Equation and its Assumptions",
-            "Applications: Venturimeter, Orificemeter, Pilot Tube",
-            "Practical Applications of Bernoulli’s Principle",
-            "Hydraulic and Energy Gradient Lines"
-        ]
-    },
-    {
-        name: "7. Momentum and Moment of Momentum Equations",
-        difficulty: "Intermediate",
-        subtopics: [
-            "Impulse Momentum Equation",
-            "Force exerted by Fluid on Pipe Bend",
-            "Moment of Momentum Equation and its Applications",
-            "Vortex Motion (Free and Forced Vortex)"
-        ]
-    },
-    {
-        name: "8. Flow through Orifices and Mouthpieces",
-        difficulty: "Intermediate",
-        subtopics: [
-            "Classification of Orifices",
-            "Flow through Sharp-edged Orifices (Cc, Cv, Cd)",
-            "Experimental Determination of Coefficients",
-            "Flow through Large Orifices and Submerged Orifices",
-            "Flow through Different Types of Mouthpieces"
-        ]
-    },
-    {
-        name: "9. Flow through Notches and Weirs",
-        difficulty: "Intermediate",
-        subtopics: [
-            "Classification of Notches and Weirs",
-            "Discharge over Rectangular and Triangular Notches",
-            "Discharge over Trapezoidal and Stepped Notches",
-            "Effect of End Contractions and Velocity of Approach"
-        ]
-    },
-    {
-        name: "10. Laminar Flow (Viscous Flow)",
-        difficulty: "Intermediate",
-        subtopics: [
-            "Reynolds Experiment and Critical Velocity",
-            "Laminar Flow between Parallel Plates (Couette and Poiseuille)",
-            "Laminar Flow through Circular Pipes (Hagen-Poiseuille)",
-            "Power required to Maintain Flow",
-            "Viscosity Measurement Techniques"
-        ]
-    },
-    {
-        name: "11. Turbulent Flow in Pipes",
-        difficulty: "Advanced",
-        subtopics: [
-            "Characteristics of Turbulent Flow",
-            "Shear Stress in Turbulent Flow (Prandtl Mixing Length)",
-            "Velocity Distribution in Turbulent Flow",
-            "Resistance of Smooth and Rough Pipes",
-            "Moody’s Diagram and Friction Factor"
-        ]
-    },
-    {
-        name: "12. Flow through Pipes - Losses and Network",
-        difficulty: "Intermediate",
-        subtopics: [
-            "Major Energy Losses (Darcy-Weisbach Equation)",
-            "Minor Energy Losses (Entry, Exit, Bend, Expansion)",
-            "Pipes in Series and Parallel",
-            "Equivalent Pipe and Branched Pipes",
-            "Water Hammer in Pipes"
-        ]
-    },
-    {
-        name: "13. Boundary Layer Theory",
-        difficulty: "Advanced",
-        subtopics: [
-            "Boundary Layer Concepts and Thickness (δ, δ*, θ, δe)",
-            "Von Karman Momentum Integral Equation",
-            "Boundary Layer over a Flat Plate (Laminar/Turbulent)",
-            "Boundary Layer Separation and its Control",
-            "Prandtl Boundary Layer Equations"
-        ]
-    },
-    {
-        name: "14. Drag and Lift",
-        difficulty: "Advanced",
-        subtopics: [
-            "Types of Drag (Pressure, Skin Friction, Profile)",
-            "Drag on a Sphere, Cylinder, and Flat Plate",
-            "Terminal Velocity Concept",
-            "Lift and Circulation (Magnus Effect)",
-            "Airfoil Theory Basics"
-        ]
-    },
-    {
-        name: "15. Dimensional Analysis and Similitude",
-        difficulty: "Intermediate",
-        subtopics: [
-            "Fundamental and Derived Quantities",
-            "Dimensional Homogeneity",
-            "Rayleigh's Method and Buckingham's π-Theorem",
-            "Dimensionless Numbers (Re, Fr, We, Ma, Eu)",
-            "Model Laws and Types of Similarity (Geometric, Kinematic, Dynamic)"
-        ]
-    },
-    {
-        name: "16. Compressible Flow",
-        difficulty: "Advanced",
-        subtopics: [
-            "Thermodynamic Relations for Fluid Flow",
-            "Speed of Sound and Mach Number",
-            "Stagnation Properties",
-            "Isentropic Flow through Variable Area Ducts",
-            "Normal Shocks and Oblique Shocks (Basics)"
-        ]
-    },
-    {
-        name: "17. Flow Measurement and Instrumentation",
-        difficulty: "Intermediate",
-        subtopics: [
-            "Advanced Flow Meters (Ultrasonic, Magnetic, Laser Doppler)",
-            "Pressure Transducers and Digital Manometers",
-            "Hot Wire Anemometry",
-            "Visualization Techniques (Smoke, Dye, PIV)"
-        ]
-    },
-    {
-        name: "18. Open Channel Flow (Basics)",
-        difficulty: "Advanced",
-        subtopics: [
-            "Types of Channels and Flow Patterns",
-            "Uniform Flow - Chezy's and Manning's Formula",
-            "Most Economical Channel Section",
-            "Specific Energy and Critical Depth",
-            "Hydraulic Jump in Channels"
-        ]
-    }
+  {
+    name: "1.1 Fluid Definition and Classification",
+    difficulty: "Beginner",
+    subtopics: [
+      "Fluid as a substance that continuously deforms under shear",
+      "Liquid versus gas behavior",
+      "Continuum hypothesis and practical validity",
+      "Newtonian and non-Newtonian behavior"
+    ]
+  },
+  {
+    name: "1.2 Fundamental Fluid Properties",
+    difficulty: "Beginner",
+    subtopics: [
+      "Density, specific weight, and specific gravity",
+      "Dynamic and kinematic viscosity",
+      "Bulk modulus and compressibility",
+      "Surface tension, capillarity, and vapor pressure"
+    ]
+  },
+  {
+    name: "1.3 Fluid Statics and Pressure Variation",
+    difficulty: "Beginner",
+    subtopics: [
+      "Hydrostatic equation and pressure-depth relation",
+      "Absolute, gauge, and vacuum pressure",
+      "Pressure equality at same horizontal level",
+      "Applications to tanks and reservoirs"
+    ]
+  },
+  {
+    name: "1.4 Manometry and Pressure Measurement",
+    difficulty: "Beginner",
+    subtopics: [
+      "Simple and differential manometers",
+      "Multifluid manometer calculations",
+      "Mechanical pressure gauges",
+      "Error sources and practical reading"
+    ]
+  },
+  {
+    name: "1.5 Hydrostatic Forces and Buoyancy",
+    difficulty: "Intermediate",
+    subtopics: [
+      "Resultant force on plane and curved surfaces",
+      "Center of pressure determination",
+      "Archimedes principle and buoyant force",
+      "Flotation stability and metacentric height"
+    ]
+  },
+  {
+    name: "2.1 Fluid Kinematics and Flow Description",
+    difficulty: "Intermediate",
+    subtopics: [
+      "Lagrangian and Eulerian descriptions",
+      "Steady/unsteady, uniform/non-uniform classifications",
+      "Laminar/turbulent and compressible/incompressible flow",
+      "1D/2D/3D flow frameworks"
+    ]
+  },
+  {
+    name: "2.2 Streamlines and Related Curves",
+    difficulty: "Intermediate",
+    subtopics: [
+      "Streamline, pathline, and streakline concepts",
+      "Coincidence conditions in steady flow",
+      "Qualitative visualization of flow structures",
+      "Use in experiments and diagnostics"
+    ]
+  },
+  {
+    name: "2.3 Velocity, Acceleration, and Vorticity",
+    difficulty: "Advanced",
+    subtopics: [
+      "Velocity field components and gradients",
+      "Local and convective acceleration terms",
+      "Material derivative interpretation",
+      "Vorticity and rotational versus irrotational flow"
+    ]
+  },
+  {
+    name: "3.1 Continuity Equation",
+    difficulty: "Intermediate",
+    subtopics: [
+      "Integral and differential forms of mass conservation",
+      "Incompressible simplification",
+      "Pipe/nozzle area-velocity relation",
+      "Applications in network problems"
+    ]
+  },
+  {
+    name: "3.2 Bernoulli and Energy Equation",
+    difficulty: "Intermediate",
+    subtopics: [
+      "Bernoulli equation assumptions and forms",
+      "Pressure, velocity, and elevation heads",
+      "Inclusion of pumps, turbines, and losses",
+      "Hydraulic and energy grade lines"
+    ]
+  },
+  {
+    name: "3.3 Momentum Equation Applications",
+    difficulty: "Intermediate",
+    subtopics: [
+      "Control-volume momentum balance",
+      "Force on bends, nozzles, and jets",
+      "Moment of momentum and rotating systems",
+      "Practical thrust calculations"
+    ]
+  },
+  {
+    name: "4.1 Laminar Pipe Flow",
+    difficulty: "Intermediate",
+    subtopics: [
+      "Hagen-Poiseuille relations",
+      "Parabolic velocity profile and wall shear",
+      "Pressure-drop relation and friction factor f=64/Re",
+      "Laminar flow engineering limits"
+    ]
+  },
+  {
+    name: "4.2 Turbulent Pipe Flow",
+    difficulty: "Advanced",
+    subtopics: [
+      "Turbulence characteristics and fluctuations",
+      "Moody chart and Colebrook-type friction relation",
+      "Smooth versus rough pipe behavior",
+      "Head-loss calculations for design"
+    ]
+  },
+  {
+    name: "4.3 Boundary Layer Theory",
+    difficulty: "Advanced",
+    subtopics: [
+      "Boundary layer growth over flat plates",
+      "Laminar-turbulent transition concept",
+      "Displacement and momentum thickness",
+      "Separation and control basics"
+    ]
+  },
+  {
+    name: "5. Flow Measurement Devices",
+    difficulty: "Intermediate",
+    subtopics: [
+      "Venturimeter and orificemeter discharge equations",
+      "Pitot-static tube for velocity measurement",
+      "Notches and weirs in open-channel measurement",
+      "Coefficient calibration concepts"
+    ]
+  },
+  {
+    name: "6. Head Losses and Pipe Networks",
+    difficulty: "Intermediate",
+    subtopics: [
+      "Major and minor loss modeling",
+      "Equivalent length and K-value methods",
+      "Series and parallel pipe networks",
+      "Basic water-hammer awareness"
+    ]
+  },
+  {
+    name: "7. Pumps and Turbines Basics",
+    difficulty: "Intermediate",
+    subtopics: [
+      "Centrifugal pump characteristics and system curve",
+      "NPSH and cavitation criterion",
+      "Affinity laws for speed variation",
+      "Impulse/reaction turbine fundamentals"
+    ]
+  },
+  {
+    name: "8. Compressible Flow Basics",
+    difficulty: "Advanced",
+    subtopics: [
+      "Mach number and speed of sound",
+      "Stagnation versus static properties",
+      "Isentropic nozzle flow",
+      "Choked-flow concept"
+    ]
+  },
+  {
+    name: "9. External Flow, Drag, and Lift",
+    difficulty: "Advanced",
+    subtopics: [
+      "Skin-friction and pressure drag components",
+      "Drag coefficient behavior with Re",
+      "Lift generation and basic airfoil ideas",
+      "Flow separation impact on drag"
+    ]
+  },
+  {
+    name: "10. Dimensional Analysis and Similarity",
+    difficulty: "Intermediate",
+    subtopics: [
+      "Buckingham Pi theorem usage",
+      "Key dimensionless numbers: Re, Fr, We, Ma",
+      "Geometric, kinematic, and dynamic similarity",
+      "Model-prototype scaling principles"
+    ]
+  },
+  {
+    name: "11. Exam-Oriented Problem Frameworks",
+    difficulty: "Advanced",
+    subtopics: [
+      "Manometer workflow",
+      "Pipe-flow and loss workflow",
+      "Pump selection workflow",
+      "ESE/GATE/PSU topic prioritization"
+    ]
+  },
+  {
+    name: "12. Study Plan and Practice Strategy",
+    difficulty: "Beginner",
+    subtopics: [
+      "Phase-wise progression from statics to advanced flow",
+      "Revision with mixed-problem sets",
+      "Mock tests and previous-paper drills",
+      "Practice target: 385+ quality problems"
+    ]
+  }
 ];
