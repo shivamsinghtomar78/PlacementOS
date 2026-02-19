@@ -32,14 +32,19 @@ export default function AnalyticsPage() {
     const { dbUser, user } = useAuth();
     const scopeKey = getClientScopeKey(dbUser?.preferences);
 
-    const { data, isLoading, isError } = useQuery({
+    const { data, isLoading, isError, error } = useQuery({
         queryKey: ["dashboard", scopeKey],
         queryFn: async () => {
             const res = await apiClient("/api/dashboard");
-            if (!res.ok) throw new Error("Failed");
+            if (!res.ok) {
+                const payload = await res.json().catch(() => ({}));
+                throw new Error(payload?.error || `Failed to fetch analytics (${res.status})`);
+            }
             return res.json();
         },
         enabled: !!dbUser?._id && !!user,
+        retry: 2,
+        retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
     });
 
     useEffect(() => {
@@ -126,7 +131,9 @@ export default function AnalyticsPage() {
                 <Card className="border-red-500/20 bg-red-500/5">
                     <CardContent className="pt-5 pb-5">
                         <p className="text-red-300 font-medium">Failed to load analytics data.</p>
-                        <p className="text-red-200/80 text-sm mt-1">Please refresh. If issue persists, check `/api/dashboard` logs.</p>
+                        <p className="text-red-200/80 text-sm mt-1">
+                            {error instanceof Error ? error.message : "Please refresh. If issue persists, check `/api/dashboard` logs."}
+                        </p>
                     </CardContent>
                 </Card>
             </div>

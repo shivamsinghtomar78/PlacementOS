@@ -168,14 +168,19 @@ export default function DashboardPage() {
     const { dbUser, user } = useAuth();
     const scopeKey = getClientScopeKey(dbUser?.preferences);
 
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, error } = useQuery({
         queryKey: ["dashboard", scopeKey],
         queryFn: async () => {
             const res = await apiClient("/api/dashboard");
-            if (!res.ok) throw new Error("Failed to fetch dashboard");
+            if (!res.ok) {
+                const payload = await res.json().catch(() => ({}));
+                throw new Error(payload?.error || `Failed to fetch dashboard (${res.status})`);
+            }
             return res.json();
         },
         enabled: !!dbUser?._id && !!user,
+        retry: 2,
+        retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
     });
     const isError = !isLoading && !data;
 
@@ -222,7 +227,9 @@ export default function DashboardPage() {
         return (
             <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-5">
                 <p className="text-red-300 font-medium">Failed to load dashboard data.</p>
-                <p className="text-red-200/80 text-sm mt-1">Please refresh the page. If this persists, check API logs.</p>
+                <p className="text-red-200/80 text-sm mt-1">
+                    {error instanceof Error ? error.message : "Please refresh the page. If this persists, check API logs."}
+                </p>
             </div>
         );
     }

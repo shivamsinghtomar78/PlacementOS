@@ -11,20 +11,36 @@ export async function apiClient(
         await (auth as unknown as { authStateReady: () => Promise<void> }).authStateReady();
         user = auth.currentUser;
     }
-    const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-        ...(options.headers as Record<string, string>),
+    const buildHeaders = async (forceRefreshToken = false) => {
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+            ...(options.headers as Record<string, string>),
+        };
+
+        if (user) {
+            const token = await user.getIdToken(forceRefreshToken);
+            headers.Authorization = `Bearer ${token}`;
+            headers["x-firebase-uid"] = user.uid;
+        }
+
+        return headers;
     };
 
-    if (user) {
-        const token = await user.getIdToken();
-        headers["Authorization"] = `Bearer ${token}`;
-        headers["x-firebase-uid"] = user.uid;
+    const doFetch = async (forceRefreshToken = false) => {
+        const headers = await buildHeaders(forceRefreshToken);
+        return fetch(url, {
+            cache: options.cache ?? "no-store",
+            ...options,
+            headers,
+        });
+    };
+
+    let res = await doFetch(false);
+
+    // Refresh-time auth races can produce transient 401s; retry once with a fresh token.
+    if (res.status === 401 && user) {
+        res = await doFetch(true);
     }
 
-    return fetch(url, {
-        cache: options.cache ?? "no-store",
-        ...options,
-        headers,
-    });
+    return res;
 }
