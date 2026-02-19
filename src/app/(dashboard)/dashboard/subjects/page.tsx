@@ -1,8 +1,8 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { BookOpen, Database, RefreshCw } from "lucide-react";
+import { BookOpen, RefreshCw } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/contexts/AuthContext";
 import { getClientScopeKey } from "@/lib/track-context";
@@ -15,8 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export default function SubjectsPage() {
-  const { dbUser, user, refreshDbUser } = useAuth();
-  const queryClient = useQueryClient();
+  const { dbUser, user } = useAuth();
   const scopeKey = getClientScopeKey(dbUser?.preferences);
   const activeTrack = dbUser?.preferences?.activeTrack || "placement";
   const sarkariDepartment = dbUser?.preferences?.sarkariDepartment || "mechanical";
@@ -29,20 +28,6 @@ export default function SubjectsPage() {
       return res.json();
     },
     enabled: !!user,
-  });
-
-  const seedMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiClient("/api/seed", { method: "POST" });
-      const payload = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(payload.error || "Failed to load syllabus");
-      return payload;
-    },
-    onSuccess: async () => {
-      await refreshDbUser();
-      await queryClient.invalidateQueries({ queryKey: ["subjects"] });
-      await refetch();
-    },
   });
 
   const subjects = (data?.subjects || []) as SubjectItem[];
@@ -108,26 +93,16 @@ export default function SubjectsPage() {
           <h3 className="text-lg font-medium text-slate-400 mb-2">No subjects found</h3>
           <p className="text-slate-600 text-sm mb-6">
             {activeTrack === "sarkari"
-              ? `No subjects available for Sarkari (${deptLabel}) in this account context yet.`
-              : "No subjects available for Placement mode in this account context yet."}
+              ? `Preparing syllabus for Sarkari (${deptLabel}) in this context.`
+              : "Preparing syllabus for Placement mode in this context."}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button
-              onClick={() => seedMutation.mutate()}
-              disabled={seedMutation.isPending}
-              variant="outline"
-              className="border-orange-500/30 text-orange-300 hover:bg-orange-500/10"
-            >
-              <Database className="w-4 h-4 mr-2" />
-              {seedMutation.isPending ? "Loading..." : "Load Syllabus For This Mode"}
+            <Button onClick={() => refetch()} variant="outline" className="border-slate-700 text-slate-300">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
             </Button>
             <AddSubjectDialog scopeKey={scopeKey} />
           </div>
-          {seedMutation.isError && (
-            <p className="text-red-300 text-sm mt-3">
-              {seedMutation.error instanceof Error ? seedMutation.error.message : "Failed to load syllabus"}
-            </p>
-          )}
         </motion.div>
       ) : (
         <motion.div

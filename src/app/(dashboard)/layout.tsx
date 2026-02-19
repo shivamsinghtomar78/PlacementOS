@@ -2,24 +2,46 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { motion } from "framer-motion";
+import { useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
+import { getClientScopeKey } from "@/lib/track-context";
 
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const { user, loading } = useAuth();
+    const { user, loading, dbUser } = useAuth();
     const router = useRouter();
+    const queryClient = useQueryClient();
+    const seededScopeRef = useRef<string | null>(null);
+    const scopeKey = getClientScopeKey(dbUser?.preferences);
 
     useEffect(() => {
         if (!loading && !user) {
             router.push("/login");
         }
     }, [user, loading, router]);
+
+    useEffect(() => {
+        if (!dbUser?._id) return;
+        if (seededScopeRef.current === scopeKey) return;
+
+        seededScopeRef.current = scopeKey;
+        void (async () => {
+            try {
+                const res = await apiClient("/api/seed", { method: "POST" });
+                if (!res.ok) return;
+                await queryClient.invalidateQueries();
+            } catch {
+                // No-op: non-blocking background seed sync.
+            }
+        })();
+    }, [dbUser?._id, scopeKey, queryClient]);
 
     if (loading) {
         return (

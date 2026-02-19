@@ -22,6 +22,7 @@ interface AuthContextType {
     signInWithGoogle: () => Promise<void>;
     signOut: () => Promise<void>;
     refreshDbUser: () => Promise<void>;
+    applyDbUser: (nextUser: DbUser | null) => void;
 }
 
 interface DbUser {
@@ -112,9 +113,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const applyDbUser = (nextUser: DbUser | null) => {
+        setDbUser(nextUser);
+    };
+
     return (
         <AuthContext.Provider
-            value={{ user, loading, dbUser, signIn, signUp, signInWithGoogle, signOut, refreshDbUser }}
+            value={{ user, loading, dbUser, signIn, signUp, signInWithGoogle, signOut, refreshDbUser, applyDbUser }}
         >
             {children}
         </AuthContext.Provider>

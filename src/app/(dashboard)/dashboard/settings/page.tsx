@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import { motion } from "framer-motion";
-import { Settings, User as UserIcon, Calendar, Target, Bell, Save, Database, Split, Building2 } from "lucide-react";
+import { Settings, User as UserIcon, Calendar, Target, Bell, Save, Split, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,13 +24,13 @@ const COMPANIES = [
 ];
 
 export default function SettingsPage() {
-    const { dbUser, user, refreshDbUser } = useAuth();
+    const { dbUser, user, refreshDbUser, applyDbUser } = useAuth();
     const queryClient = useQueryClient();
     const [saving, setSaving] = useState(false);
+    const [modeSaving, setModeSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
-    const [seeding, setSeeding] = useState(false);
-    const [seedResult, setSeedResult] = useState<string | null>(null);
+    const [modeError, setModeError] = useState<string | null>(null);
 
     const [name, setName] = useState("");
     const [dailyTarget, setDailyTarget] = useState(5);
@@ -56,54 +56,58 @@ export default function SettingsPage() {
         }
     }, [dbUser]);
 
-    const handleSeed = async () => {
-        setSeeding(true);
-        setSeedResult(null);
+    const syncModeAndSeed = async (nextTrack: TrackMode, nextDepartment: string) => {
+        setModeSaving(true);
+        setModeError(null);
         try {
-            // Ensure server-side context matches current mode selection before seeding.
-            const currentTrack = dbUser?.preferences?.activeTrack || "placement";
-            const currentDept = dbUser?.preferences?.sarkariDepartment || "mechanical";
-            if (currentTrack !== activeTrack || currentDept !== sarkariDepartment) {
-                const syncRes = await apiClient("/api/auth/sync", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        firebaseUid: user?.uid,
-                        email: user?.email,
-                        name,
-                        preferences: {
-                            dailyTarget,
-                            notifications,
-                            activeTrack,
-                            sarkariDepartment,
-                            placementMode: activeTrack === "placement",
-                        },
-                        placementDeadline,
-                        targetCompanies,
-                    }),
-                });
-                if (!syncRes.ok) {
-                    const syncData = await syncRes.json().catch(() => ({ error: "Save mode settings before seeding" }));
-                    throw new Error(syncData.error || "Save mode settings before seeding");
-                }
+            const syncRes = await apiClient("/api/auth/sync", {
+                method: "POST",
+                body: JSON.stringify({
+                    firebaseUid: user?.uid,
+                    email: user?.email,
+                    name,
+                    preferences: {
+                        activeTrack: nextTrack,
+                        sarkariDepartment: nextDepartment,
+                        placementMode: nextTrack === "placement",
+                    },
+                }),
+            });
+
+            if (!syncRes.ok) {
+                const syncData = await syncRes.json().catch(() => ({ error: "Failed to switch mode" }));
+                throw new Error(syncData.error || "Failed to switch mode");
+            }
+            const syncData = await syncRes.json();
+            if (syncData?.user) {
+                applyDbUser(syncData.user);
             }
 
-            const res = await apiClient("/api/seed", { method: "POST" });
-            const data = await res.json();
-            if (res.ok) {
-                const created = data.created?.map((s: { subject: string; topics: number; subtopics: number }) =>
-                    `${s.subject}: ${s.topics} topics, ${s.subtopics} subtopics`
-                ).join(" | ") || "No new subjects created";
-                const skippedMsg = data.skipped?.length ? ` (Skipped: ${data.skipped.join(", ")})` : "";
-                setSeedResult(`Created in ${data.context?.track || activeTrack}: ${created}${skippedMsg}`);
-                await refreshDbUser();
-                queryClient.clear();
-            } else {
-                setSeedResult(data.error || "Failed to seed syllabus");
+            const seedRes = await apiClient("/api/seed", { method: "POST" });
+            if (!seedRes.ok) {
+                const seedData = await seedRes.json().catch(() => ({ error: "Failed to load syllabus for selected mode" }));
+                throw new Error(seedData.error || "Failed to load syllabus for selected mode");
             }
+
+            await refreshDbUser();
+            queryClient.clear();
         } catch (error) {
-            setSeedResult(error instanceof Error ? error.message : "Failed to seed syllabus");
+            setModeError(error instanceof Error ? error.message : "Failed to switch mode");
         } finally {
-            setSeeding(false);
+            setModeSaving(false);
+        }
+    };
+
+    const handleTrackChange = (nextTrack: TrackMode) => {
+        setActiveTrack(nextTrack);
+        const dept = nextTrack === "sarkari" ? sarkariDepartment : "mechanical";
+        void syncModeAndSeed(nextTrack, dept);
+    };
+
+    const handleDepartmentChange = (nextDepartment: string) => {
+        setSarkariDepartment(nextDepartment);
+        if (activeTrack === "sarkari") {
+            void syncModeAndSeed("sarkari", nextDepartment);
         }
     };
 
@@ -131,6 +135,10 @@ export default function SettingsPage() {
             if (!res.ok) {
                 const data = await res.json().catch(() => ({ error: "Failed to save settings" }));
                 throw new Error(data.error || "Failed to save settings");
+            }
+            const data = await res.json();
+            if (data?.user) {
+                applyDbUser(data.user);
             }
             await refreshDbUser();
             queryClient.clear();
@@ -169,7 +177,7 @@ export default function SettingsPage() {
                     <CardContent className="space-y-4">
                         <div>
                             <Label className="text-slate-300">Track</Label>
-                            <Select value={activeTrack} onValueChange={(v) => setActiveTrack(v as TrackMode)}>
+                            <Select value={activeTrack} onValueChange={(v) => handleTrackChange(v as TrackMode)}>
                                 <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1 w-64">
                                     <SelectValue />
                                 </SelectTrigger>
@@ -186,7 +194,7 @@ export default function SettingsPage() {
                                     <Building2 className="w-4 h-4" />
                                     Sarkari Department
                                 </Label>
-                                <Select value={sarkariDepartment} onValueChange={setSarkariDepartment}>
+                                <Select value={sarkariDepartment} onValueChange={handleDepartmentChange}>
                                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1 w-64">
                                         <SelectValue />
                                     </SelectTrigger>
@@ -201,6 +209,13 @@ export default function SettingsPage() {
                     </CardContent>
                 </Card>
             </motion.div>
+
+            {modeSaving && (
+                <p className="text-sm text-indigo-300">Switching mode and loading relevant syllabus...</p>
+            )}
+            {modeError && (
+                <p className="text-sm text-red-300">{modeError}</p>
+            )}
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -316,42 +331,6 @@ export default function SettingsPage() {
                     </Card>
                 </motion.div>
             </div>
-
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                <Card className={APP_CARD_CLASS}>
-                    <CardHeader>
-                        <CardTitle className="text-white text-lg flex items-center gap-2">
-                            <Database className="w-5 h-5 text-orange-400" />
-                            Seed Current Mode Syllabus
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        <p className="text-sm text-slate-400">
-                            Seeds subjects for the active mode and selected department only. Placement and Sarkari data remain separate.
-                        </p>
-                        <div className="flex items-center gap-3">
-                            <Button
-                                onClick={handleSeed}
-                                disabled={seeding}
-                                variant="outline"
-                                className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10 gap-2"
-                            >
-                                <Database className="w-4 h-4" />
-                                {seeding ? "Seeding..." : "Load Mode Syllabus"}
-                            </Button>
-                        </div>
-                        {seedResult && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="rounded-xl border border-slate-700/60 bg-slate-900/60 p-3 text-sm text-slate-300 break-words"
-                            >
-                                {seedResult}
-                            </motion.div>
-                        )}
-                    </CardContent>
-                </Card>
-            </motion.div>
 
             <div className="sticky bottom-4 z-20">
                 <div className="rounded-2xl border border-slate-800/70 bg-slate-950/80 backdrop-blur-md px-4 py-3 flex flex-wrap items-center gap-3">

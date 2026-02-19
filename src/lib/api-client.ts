@@ -19,6 +19,7 @@ export async function apiClient(
     }
 
     return fetch(url, {
+        cache: options.cache ?? "no-store",
         ...options,
         headers,
     });

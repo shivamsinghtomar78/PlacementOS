@@ -15,7 +15,7 @@ import { PageHeader } from "@/components/common/page-header";
 import { APP_CARD_CLASS } from "@/lib/ui-tokens";
 
 export default function PlacementModePage() {
-    const { dbUser, user, refreshDbUser } = useAuth();
+    const { dbUser, user, refreshDbUser, applyDbUser } = useAuth();
     const queryClient = useQueryClient();
     const scopeKey = getClientScopeKey(dbUser?.preferences);
 
@@ -46,7 +46,13 @@ export default function PlacementModePage() {
                 }),
             });
             if (!res.ok) throw new Error("Failed to update mode");
-            return res.json();
+            const syncData = await res.json();
+            if (syncData?.user) {
+                applyDbUser(syncData.user);
+            }
+            const seedRes = await apiClient("/api/seed", { method: "POST" });
+            if (!seedRes.ok) throw new Error("Failed to load syllabus for selected mode");
+            return seedRes.json();
         },
         onSuccess: async () => {
             await refreshDbUser();
