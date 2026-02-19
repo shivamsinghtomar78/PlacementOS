@@ -7,7 +7,7 @@ import Subtopic from "@/models/Subtopic";
 import DailyProgress from "@/models/DailyProgress";
 import { getScopedFilter, getTrackContextFromUser } from "@/lib/track-context";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 type DailyStat = {
     date: Date;
@@ -24,7 +24,6 @@ export async function GET(req: NextRequest) {
 
         await dbConnect();
 
-        // ─── Aggregation: Overall + Per-Subject Progress ─────────────────────
         const [subjectProgressAgg, subjects, topicCount] = await Promise.all([
             Subtopic.aggregate([
                 { $match: scope },
@@ -39,7 +38,6 @@ export async function GET(req: NextRequest) {
             Topic.countDocuments(scope),
         ]);
 
-        // Build per-subject progress from aggregation
         const subjectStatsMap = new Map<string, { total: number; completed: number; inProgress: number }>();
         for (const row of subjectProgressAgg) {
             const sid = row._id.subjectId.toString();
@@ -79,46 +77,36 @@ export async function GET(req: NextRequest) {
             ? Math.round((completedSubtopics / totalSubtopics) * 100)
             : 0;
 
-        // Weakest subject
         const weakestSubject = subjectProgress
             .filter((s) => s.total > 0)
             .sort((a, b) => a.progress - b.progress)[0] || null;
 
-        // ─── Aggregation: Revision Due Count ─────────────────────────────────
         const now = new Date();
-        const [revisionDueResult] = await Subtopic.aggregate([
+        const revisionCandidates = await Subtopic.find(
             {
-                $match: {
-                    ...scope,
-                    "revision.learnedDate": { $exists: true, $ne: null },
-                },
+                ...scope,
+                "revision.learnedDate": { $exists: true, $ne: null },
             },
-            {
-                $addFields: {
-                    daysSinceLearned: {
-                        $dateDiff: {
-                            startDate: "$revision.learnedDate",
-                            endDate: now,
-                            unit: "day",
-                        },
-                    },
-                },
-            },
-            {
-                $match: {
-                    $or: [
-                        { "revision.revised1": false, daysSinceLearned: { $gte: 1 } },
-                        { "revision.revised2": false, daysSinceLearned: { $gte: 3 } },
-                        { "revision.revised3": false, daysSinceLearned: { $gte: 7 } },
-                        { "revision.finalRevised": false, daysSinceLearned: { $gte: 30 } },
-                    ],
-                },
-            },
-            { $count: "count" },
-        ]);
-        const revisionDueCount = revisionDueResult?.count || 0;
+            { revision: 1 }
+        ).lean();
 
-        // ─── Heatmap & Streak (DailyProgress is already indexed) ─────────────
+        const revisionDueCount = revisionCandidates.reduce((count, item) => {
+            const learnedDate = item.revision?.learnedDate;
+            if (!learnedDate) return count;
+
+            const daysSinceLearned = Math.floor(
+                (now.getTime() - new Date(learnedDate).getTime()) / (1000 * 60 * 60 * 24)
+            );
+
+            const due =
+                (!item.revision?.revised1 && daysSinceLearned >= 1) ||
+                (!item.revision?.revised2 && daysSinceLearned >= 3) ||
+                (!item.revision?.revised3 && daysSinceLearned >= 7) ||
+                (!item.revision?.finalRevised && daysSinceLearned >= 30);
+
+            return due ? count + 1 : count;
+        }, 0);
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -130,19 +118,17 @@ export async function GET(req: NextRequest) {
             date: { $gte: yearAgo },
         }).sort({ date: -1 }).lean();
 
-        // dailyStats (last 30 days) for weekly chart
         const thirtyDaysAgo = new Date(today);
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const dailyStats = heatmapData
-            .filter(d => new Date(d.date) >= thirtyDaysAgo)
+            .filter((d) => new Date(d.date) >= thirtyDaysAgo)
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-        // Streak calculation
         let streak = 0;
         const streakDates = new Set(
             heatmapData
-                .filter(d => d.subtopicsCompleted > 0)
-                .map(d => {
+                .filter((d) => d.subtopicsCompleted > 0)
+                .map((d) => {
                     const date = new Date(d.date);
                     date.setHours(0, 0, 0, 0);
                     return date.getTime();

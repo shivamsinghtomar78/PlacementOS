@@ -32,7 +32,7 @@ export default function AnalyticsPage() {
     const { dbUser } = useAuth();
     const scopeKey = getClientScopeKey(dbUser?.preferences);
 
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, isError } = useQuery({
         queryKey: ["dashboard", scopeKey],
         queryFn: async () => {
             const res = await apiClient("/api/dashboard");
@@ -111,6 +111,24 @@ export default function AnalyticsPage() {
                         <Skeleton key={i} className="h-48 rounded-2xl bg-slate-800/50" />
                     ))}
                 </div>
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <div className="space-y-4">
+                <PageHeader
+                    icon={<BarChart3 className="w-6 h-6 text-indigo-400" />}
+                    title="Analytics & Insights"
+                    subtitle="AI-powered analysis of your preparation progress"
+                />
+                <Card className="border-red-500/20 bg-red-500/5">
+                    <CardContent className="pt-5 pb-5">
+                        <p className="text-red-300 font-medium">Failed to load analytics data.</p>
+                        <p className="text-red-200/80 text-sm mt-1">Please refresh. If issue persists, check `/api/dashboard` logs.</p>
+                    </CardContent>
+                </Card>
             </div>
         );
     }

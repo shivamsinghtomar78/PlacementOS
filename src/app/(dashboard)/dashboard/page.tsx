@@ -177,6 +177,7 @@ export default function DashboardPage() {
         },
         enabled: !!dbUser?._id,
     });
+    const isError = !isLoading && !data;
 
     useEffect(() => {
         if (!dbUser?._id || !pusherClient) return;
@@ -213,6 +214,15 @@ export default function DashboardPage() {
                     <Skeleton className="h-64 rounded-2xl bg-slate-800/50" />
                     <Skeleton className="h-64 rounded-2xl bg-slate-800/50" />
                 </div>
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-5">
+                <p className="text-red-300 font-medium">Failed to load dashboard data.</p>
+                <p className="text-red-200/80 text-sm mt-1">Please refresh the page. If this persists, check API logs.</p>
             </div>
         );
     }

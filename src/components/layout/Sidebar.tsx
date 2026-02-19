@@ -15,17 +15,6 @@ import {
     X,
     Zap,
     ChevronLeft,
-    Calculator,
-    Wrench,
-    Box,
-    Cog,
-    PenTool,
-    Flame,
-    Thermometer,
-    Wind,
-    Droplets,
-    Factory,
-    Briefcase,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -39,26 +28,10 @@ const navItems = [
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
-const sarkaariNokariItems = [
-    { href: "/dashboard/subjects/engineering-mathematics", label: "Engineering Mathematics", icon: Calculator },
-    { href: "/dashboard/subjects/engineering-mechanics", label: "Engineering Mechanics", icon: Wrench },
-    { href: "/dashboard/subjects/strength-of-materials", label: "Strength of Materials", icon: Box },
-    { href: "/dashboard/subjects/theory-of-machines", label: "Theory of Machines", icon: Cog },
-    { href: "/dashboard/subjects/machine-design", label: "Machine Design", icon: PenTool },
-    { href: "/dashboard/subjects/thermodynamics", label: "Thermodynamics", icon: Flame },
-    { href: "/dashboard/subjects/heat-transfer", label: "Heat Transfer", icon: Thermometer },
-    { href: "/dashboard/subjects/refrigeration-ac", label: "Refrigeration & AC", icon: Wind },
-    { href: "/dashboard/subjects/power-plant", label: "Power Plant", icon: Zap },
-    { href: "/dashboard/subjects/fluid-mechanics", label: "Fluid Mechanics", icon: Droplets },
-    { href: "/dashboard/subjects/manufacturing", label: "Manufacturing", icon: Factory },
-    { href: "/dashboard/subjects/industrial-engineering", label: "Industrial Engineering", icon: Briefcase },
-];
-
 export function Sidebar() {
     const pathname = usePathname();
     const { user, dbUser, signOut } = useAuth();
     const [collapsed, setCollapsed] = useState(false);
-    const isSarkariTrack = dbUser?.preferences?.activeTrack === "sarkari";
 
     return (
         <>
@@ -160,71 +133,6 @@ export function Sidebar() {
                         );
                     })}
 
-                    {isSarkariTrack && (
-                        <div className="pt-4 pb-2">
-                            <AnimatePresence mode="wait">
-                                {!collapsed ? (
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        className="px-3"
-                                    >
-                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 mb-2">
-                                            Sarkaari Nokari
-                                        </p>
-                                    </motion.div>
-                                ) : (
-                                    <div className="border-t border-slate-800/50 mx-4 my-2" />
-                                )}
-                            </AnimatePresence>
-                        </div>
-                    )}
-
-                    {isSarkariTrack && sarkaariNokariItems.map((item, index) => {
-                        const isActive = pathname.startsWith(item.href);
-                        return (
-                            <Link key={item.href} href={item.href}>
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: (navItems.length + index) * 0.05 }}
-                                    whileHover={{ x: 4, backgroundColor: "rgba(255, 255, 255, 0.05)" }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className={cn(
-                                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden",
-                                        isActive
-                                            ? "bg-indigo-500/10 text-indigo-400 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]"
-                                            : "text-slate-400 hover:text-white"
-                                    )}
-                                >
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="activeNavSarkaari"
-                                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-r-full shadow-[0_0_10px_rgba(99,102,241,0.5)]"
-                                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                        />
-                                    )}
-                                    <item.icon className={cn(
-                                        "w-5 h-5 shrink-0 transition-transform duration-300 group-hover:scale-110",
-                                        isActive && "text-indigo-400 drop-shadow-[0_0_3px_rgba(99,102,241,0.5)]"
-                                    )} />
-                                    <AnimatePresence mode="wait">
-                                        {!collapsed && (
-                                            <motion.span
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                exit={{ opacity: 0, x: -10 }}
-                                                className="whitespace-nowrap overflow-hidden"
-                                            >
-                                                {item.label}
-                                            </motion.span>
-                                        )}
-                                    </AnimatePresence>
-                                </motion.div>
-                            </Link>
-                        );
-                    })}
                 </nav>
 
                 {/* User Section */}
@@ -280,7 +188,6 @@ export function MobileSidebar({
 }) {
     const pathname = usePathname();
     const { user, dbUser, signOut } = useAuth();
-    const isSarkariTrack = dbUser?.preferences?.activeTrack === "sarkari";
 
     return (
         <AnimatePresence>
@@ -342,32 +249,6 @@ export function MobileSidebar({
                                 );
                             })}
 
-                            {isSarkariTrack && (
-                                <div className="pt-4 pb-2 px-3">
-                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 mb-2">
-                                        Sarkaari Nokari
-                                    </p>
-                                </div>
-                            )}
-
-                            {isSarkariTrack && sarkaariNokariItems.map((item) => {
-                                const isActive = pathname.startsWith(item.href);
-                                return (
-                                    <Link key={item.href} href={item.href} onClick={onClose}>
-                                        <div
-                                            className={cn(
-                                                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                                                isActive
-                                                    ? "bg-indigo-500/10 text-indigo-400"
-                                                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
-                                            )}
-                                        >
-                                            <item.icon className="w-5 h-5" />
-                                            <span>{item.label}</span>
-                                        </div>
-                                    </Link>
-                                );
-                            })}
                         </nav>
 
                         <div className="p-3 border-t border-slate-800/50">
