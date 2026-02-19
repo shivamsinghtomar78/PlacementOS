@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import dynamic from "next/dynamic";
+import { getClientScopeKey } from "@/lib/track-context";
 
 type SubjectProgress = {
     _id: string;
@@ -167,9 +168,10 @@ HeatmapCalendar.displayName = "HeatmapCalendar";
 export default function DashboardPage() {
     const queryClient = useQueryClient();
     const { dbUser } = useAuth();
+    const scopeKey = getClientScopeKey(dbUser?.preferences);
 
     const { data, isLoading } = useQuery({
-        queryKey: ["dashboard"],
+        queryKey: ["dashboard", scopeKey],
         queryFn: async () => {
             const res = await apiClient("/api/dashboard");
             if (!res.ok) throw new Error("Failed to fetch dashboard");
@@ -182,13 +184,13 @@ export default function DashboardPage() {
 
         const channel = pusherClient.subscribe(`user-${dbUser._id}`);
         channel.bind("dashboard-update", () => {
-            queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+            queryClient.invalidateQueries({ queryKey: ["dashboard", scopeKey] });
         });
 
         return () => {
             pusherClient?.unsubscribe(`user-${dbUser._id}`);
         };
-    }, [dbUser?._id, queryClient]);
+    }, [dbUser?._id, queryClient, scopeKey]);
 
     const stagger = {
         animate: { transition: { staggerChildren: 0.1 } },

@@ -26,13 +26,15 @@ import {
     Tooltip as RechartsTooltip,
     ResponsiveContainer,
 } from "recharts";
+import { getClientScopeKey } from "@/lib/track-context";
 
 export default function AnalyticsPage() {
     const queryClient = useQueryClient();
     const { dbUser } = useAuth();
+    const scopeKey = getClientScopeKey(dbUser?.preferences);
 
     const { data, isLoading } = useQuery({
-        queryKey: ["dashboard"],
+        queryKey: ["dashboard", scopeKey],
         queryFn: async () => {
             const res = await apiClient("/api/dashboard");
             if (!res.ok) throw new Error("Failed");
@@ -45,13 +47,13 @@ export default function AnalyticsPage() {
 
         const channel = pusherClient.subscribe(`user-${dbUser._id}`);
         channel.bind("dashboard-update", () => {
-            queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+            queryClient.invalidateQueries({ queryKey: ["dashboard", scopeKey] });
         });
 
         return () => {
             pusherClient?.unsubscribe(`user-${dbUser._id}`);
         };
-    }, [dbUser?._id, queryClient]);
+    }, [dbUser?._id, queryClient, scopeKey]);
 
     const subjectProgress = data?.subjectProgress || [];
     const metrics = data?.metrics;

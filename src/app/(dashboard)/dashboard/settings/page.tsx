@@ -26,6 +26,7 @@ export default function SettingsPage() {
     const queryClient = useQueryClient();
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
     const [seeding, setSeeding] = useState(false);
     const [seedResult, setSeedResult] = useState<string | null>(null);
 
@@ -57,6 +58,33 @@ export default function SettingsPage() {
         setSeeding(true);
         setSeedResult(null);
         try {
+            // Ensure server-side context matches current mode selection before seeding.
+            const currentTrack = dbUser?.preferences?.activeTrack || "placement";
+            const currentDept = dbUser?.preferences?.sarkariDepartment || "mechanical";
+            if (currentTrack !== activeTrack || currentDept !== sarkariDepartment) {
+                const syncRes = await apiClient("/api/auth/sync", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        firebaseUid: user?.uid,
+                        email: user?.email,
+                        name,
+                        preferences: {
+                            dailyTarget,
+                            notifications,
+                            activeTrack,
+                            sarkariDepartment,
+                            placementMode: activeTrack === "placement",
+                        },
+                        placementDeadline,
+                        targetCompanies,
+                    }),
+                });
+                if (!syncRes.ok) {
+                    const syncData = await syncRes.json().catch(() => ({ error: "Save mode settings before seeding" }));
+                    throw new Error(syncData.error || "Save mode settings before seeding");
+                }
+            }
+
             const res = await apiClient("/api/seed", { method: "POST" });
             const data = await res.json();
             if (res.ok) {
@@ -70,8 +98,8 @@ export default function SettingsPage() {
             } else {
                 setSeedResult(data.error || "Failed to seed syllabus");
             }
-        } catch {
-            setSeedResult("Failed to seed syllabus");
+        } catch (error) {
+            setSeedResult(error instanceof Error ? error.message : "Failed to seed syllabus");
         } finally {
             setSeeding(false);
         }
@@ -79,8 +107,9 @@ export default function SettingsPage() {
 
     const handleSave = async () => {
         setSaving(true);
+        setSaveError(null);
         try {
-            await apiClient("/api/auth/sync", {
+            const res = await apiClient("/api/auth/sync", {
                 method: "POST",
                 body: JSON.stringify({
                     firebaseUid: user?.uid,
@@ -97,12 +126,17 @@ export default function SettingsPage() {
                     targetCompanies,
                 }),
             });
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({ error: "Failed to save settings" }));
+                throw new Error(data.error || "Failed to save settings");
+            }
             await refreshDbUser();
             queryClient.clear();
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         } catch (error) {
             console.error("Save error:", error);
+            setSaveError(error instanceof Error ? error.message : "Failed to save settings");
         } finally {
             setSaving(false);
         }
@@ -335,6 +369,15 @@ export default function SettingsPage() {
                         className="text-green-400 text-sm"
                     >
                         Saved successfully
+                    </motion.span>
+                )}
+                {saveError && (
+                    <motion.span
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="text-red-400 text-sm"
+                    >
+                        {saveError}
                     </motion.span>
                 )}
             </div>

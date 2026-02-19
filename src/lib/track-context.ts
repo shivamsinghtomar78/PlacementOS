@@ -56,3 +56,14 @@ export function getScopedFilter(
         department: context.department,
     };
 }
+
+export function getClientScopeKey(preferences?: {
+    activeTrack?: unknown;
+    sarkariDepartment?: unknown;
+}) {
+    const track = normalizeTrack(preferences?.activeTrack);
+    const department = track === "sarkari"
+        ? normalizeDepartment(preferences?.sarkariDepartment)
+        : "general";
+    return `${track}:${department}`;
+}

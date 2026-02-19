@@ -10,13 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { differenceInDays, format } from "date-fns";
+import { getClientScopeKey } from "@/lib/track-context";
 
 export default function PlacementModePage() {
     const { dbUser, user, refreshDbUser } = useAuth();
     const queryClient = useQueryClient();
+    const scopeKey = getClientScopeKey(dbUser?.preferences);
 
     const { data, isLoading } = useQuery({
-        queryKey: ["dashboard"],
+        queryKey: ["dashboard", scopeKey],
         queryFn: async () => {
             const res = await apiClient("/api/dashboard");
             if (!res.ok) throw new Error("Failed");

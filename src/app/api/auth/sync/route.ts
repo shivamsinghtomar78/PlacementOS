@@ -4,6 +4,16 @@ import User from "@/models/User";
 import { authSyncSchema, parseBody } from "@/lib/validations";
 import { normalizeDepartment, normalizeTrack } from "@/lib/track-context";
 
+function parsePlacementDeadline(value: string | undefined): Date | null | undefined {
+    if (value === undefined) return undefined;
+    if (!value.trim()) return null;
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        throw new Error("Invalid placementDeadline");
+    }
+    return parsed;
+}
+
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
@@ -17,22 +27,24 @@ export async function POST(req: NextRequest) {
         await dbConnect();
 
         let user = await User.findOne({ firebaseUid });
+        const parsedDeadline = parsePlacementDeadline(parsed.data.placementDeadline);
 
         if (!user) {
+            const activeTrack = normalizeTrack(parsed.data.preferences?.activeTrack);
             user = await User.create({
                 firebaseUid,
                 email,
                 name: name || email.split("@")[0],
                 image,
-                placementDeadline: parsed.data.placementDeadline ? new Date(parsed.data.placementDeadline) : undefined,
+                placementDeadline: parsedDeadline ?? undefined,
                 targetCompanies: parsed.data.targetCompanies || [],
                 preferences: {
                     theme: parsed.data.preferences?.theme || "dark",
                     dailyTarget: parsed.data.preferences?.dailyTarget || 5,
                     focusMode: parsed.data.preferences?.focusMode || false,
                     notifications: parsed.data.preferences?.notifications ?? true,
-                    placementMode: parsed.data.preferences?.placementMode || false,
-                    activeTrack: normalizeTrack(parsed.data.preferences?.activeTrack),
+                    placementMode: activeTrack === "placement",
+                    activeTrack,
                     sarkariDepartment: normalizeDepartment(parsed.data.preferences?.sarkariDepartment),
                 },
             });
@@ -43,14 +55,18 @@ export async function POST(req: NextRequest) {
             user.email = email;
 
             // Update preferences and metadata if provided
-            if (parsed.data.placementDeadline !== undefined) user.placementDeadline = new Date(parsed.data.placementDeadline);
+            if (parsedDeadline !== undefined) {
+                user.placementDeadline = parsedDeadline ?? undefined;
+            }
             if (parsed.data.targetCompanies !== undefined) user.targetCompanies = parsed.data.targetCompanies;
 
             if (parsed.data.preferences) {
+                const activeTrack = normalizeTrack(parsed.data.preferences.activeTrack ?? user.preferences.activeTrack);
                 user.preferences = {
                     ...user.preferences,
                     ...parsed.data.preferences,
-                    activeTrack: normalizeTrack(parsed.data.preferences.activeTrack ?? user.preferences.activeTrack),
+                    placementMode: activeTrack === "placement",
+                    activeTrack,
                     sarkariDepartment: normalizeDepartment(parsed.data.preferences.sarkariDepartment ?? user.preferences.sarkariDepartment),
                 };
             }
@@ -61,6 +77,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ user });
     } catch (error) {
         console.error("Auth sync error:", error);
+        if (error instanceof Error && error.message === "Invalid placementDeadline") {
+            return NextResponse.json({ error: "Invalid placement deadline date format" }, { status: 400 });
+        }
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }

@@ -42,6 +42,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
+import { getClientScopeKey } from "@/lib/track-context";
 
 const SUBJECT_ICONS = ["📚", "💻", "🧠", "🌐", "📊", "🔧", "📐", "🎯", "⚡", "🔬", "📝", "🏗️"];
 const SUBJECT_COLORS = [
@@ -100,6 +102,8 @@ function AddSubjectDialog({ onClose }: { onClose?: () => void }) {
     const [color, setColor] = useState("#6366f1");
     const [open, setOpen] = useState(false);
     const queryClient = useQueryClient();
+    const { dbUser } = useAuth();
+    const scopeKey = getClientScopeKey(dbUser?.preferences);
 
     const mutation = useMutation({
         mutationFn: async (data: { name: string; description: string; icon: string; color: string }) => {
@@ -111,7 +115,7 @@ function AddSubjectDialog({ onClose }: { onClose?: () => void }) {
             return res.json();
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["subjects"] });
+            queryClient.invalidateQueries({ queryKey: ["subjects", scopeKey] });
             setName("");
             setDescription("");
             setOpen(false);
@@ -333,6 +337,8 @@ function AddSubtopicDialog({
 // Subtopic Row with status toggle, revision checkboxes, and notes
 function SubtopicRow({ subtopic, topicId }: { subtopic: Record<string, unknown>; topicId: string }) {
     const queryClient = useQueryClient();
+    const { dbUser } = useAuth();
+    const scopeKey = getClientScopeKey(dbUser?.preferences);
     const [showNotes, setShowNotes] = useState(false);
     const [notesValue, setNotesValue] = useState("");
     const [notesSaving, setNotesSaving] = useState(false);
@@ -370,7 +376,7 @@ function SubtopicRow({ subtopic, topicId }: { subtopic: Record<string, unknown>;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["subtopics", topicId] });
-            queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+            queryClient.invalidateQueries({ queryKey: ["dashboard", scopeKey] });
         },
     });
 
@@ -385,7 +391,7 @@ function SubtopicRow({ subtopic, topicId }: { subtopic: Record<string, unknown>;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["subtopics", topicId] });
-            queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+            queryClient.invalidateQueries({ queryKey: ["dashboard", scopeKey] });
         },
     });
 
@@ -743,6 +749,8 @@ function SubjectCard({
     const [expanded, setExpanded] = useState(false);
     const [addTopicOpen, setAddTopicOpen] = useState(false);
     const queryClient = useQueryClient();
+    const { dbUser } = useAuth();
+    const scopeKey = getClientScopeKey(dbUser?.preferences);
 
     const { data: topicsData } = useQuery({
         queryKey: ["topics", subject._id],
@@ -760,7 +768,7 @@ function SubjectCard({
             if (!res.ok) throw new Error("Failed");
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["subjects"] });
+            queryClient.invalidateQueries({ queryKey: ["subjects", scopeKey] });
         },
     });
 
@@ -875,8 +883,11 @@ function SubjectCard({
 
 // Main Subjects Page
 export default function SubjectsPage() {
+    const { dbUser } = useAuth();
+    const scopeKey = getClientScopeKey(dbUser?.preferences);
+
     const { data, isLoading } = useQuery({
-        queryKey: ["subjects"],
+        queryKey: ["subjects", scopeKey],
         queryFn: async () => {
             const res = await apiClient("/api/subjects");
             if (!res.ok) throw new Error("Failed");

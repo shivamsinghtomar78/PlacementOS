@@ -17,6 +17,7 @@ import {
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getClientScopeKey } from "@/lib/track-context";
 
 type SearchResult = {
     id: string;
@@ -54,10 +55,11 @@ export function Header() {
     const [isSearching, setIsSearching] = useState(false);
     const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 300);
     const queryClient = useQueryClient();
+    const scopeKey = getClientScopeKey(dbUser?.preferences);
 
     // Search query
     const { data: searchData, isLoading: searchLoading } = useQuery({
-        queryKey: ["search", debouncedSearchQuery],
+        queryKey: ["search", scopeKey, debouncedSearchQuery],
         queryFn: async () => {
             if (debouncedSearchQuery.length < 3) return { results: [] as SearchResult[] };
             const res = await apiClient(`/api/search?q=${encodeURIComponent(debouncedSearchQuery)}`);
@@ -73,7 +75,7 @@ export function Header() {
 
     // Notifications query
     const { data: notifyData } = useQuery({
-        queryKey: ["notifications"],
+        queryKey: ["notifications", scopeKey],
         queryFn: async () => {
             const res = await apiClient("/api/notifications");
             if (!res.ok) throw new Error("Failed to fetch notifications");
@@ -95,7 +97,7 @@ export function Header() {
             return res.json();
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["notifications"] });
+            queryClient.invalidateQueries({ queryKey: ["notifications", scopeKey] });
         },
     });
 
@@ -246,7 +248,7 @@ export function Header() {
                                             apiClient("/api/notifications", {
                                                 method: "PATCH",
                                                 body: JSON.stringify({ action: "markAllAsRead" }),
-                                            }).then(() => queryClient.invalidateQueries({ queryKey: ["notifications"] }));
+                                            }).then(() => queryClient.invalidateQueries({ queryKey: ["notifications", scopeKey] }));
                                         }}
                                     >
                                         Mark all as read
