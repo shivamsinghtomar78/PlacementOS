@@ -58,6 +58,7 @@ export function Sidebar() {
     const pathname = usePathname();
     const { user, dbUser, signOut } = useAuth();
     const [collapsed, setCollapsed] = useState(false);
+    const isSarkariTrack = dbUser?.preferences?.activeTrack === "sarkari";
 
     return (
         <>
@@ -159,27 +160,28 @@ export function Sidebar() {
                         );
                     })}
 
-                    {/* Sarkaari Nokari Section */}
-                    <div className="pt-4 pb-2">
-                        <AnimatePresence mode="wait">
-                            {!collapsed ? (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="px-3"
-                                >
-                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 mb-2">
-                                        Sarkaari Nokari
-                                    </p>
-                                </motion.div>
-                            ) : (
-                                <div className="border-t border-slate-800/50 mx-4 my-2" />
-                            )}
-                        </AnimatePresence>
-                    </div>
+                    {isSarkariTrack && (
+                        <div className="pt-4 pb-2">
+                            <AnimatePresence mode="wait">
+                                {!collapsed ? (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="px-3"
+                                    >
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 mb-2">
+                                            Sarkaari Nokari
+                                        </p>
+                                    </motion.div>
+                                ) : (
+                                    <div className="border-t border-slate-800/50 mx-4 my-2" />
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    )}
 
-                    {sarkaariNokariItems.map((item, index) => {
+                    {isSarkariTrack && sarkaariNokariItems.map((item, index) => {
                         const isActive = pathname.startsWith(item.href);
                         return (
                             <Link key={item.href} href={item.href}>
@@ -278,6 +280,7 @@ export function MobileSidebar({
 }) {
     const pathname = usePathname();
     const { user, dbUser, signOut } = useAuth();
+    const isSarkariTrack = dbUser?.preferences?.activeTrack === "sarkari";
 
     return (
         <AnimatePresence>
@@ -339,13 +342,15 @@ export function MobileSidebar({
                                 );
                             })}
 
-                            <div className="pt-4 pb-2 px-3">
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 mb-2">
-                                    Sarkaari Nokari
-                                </p>
-                            </div>
+                            {isSarkariTrack && (
+                                <div className="pt-4 pb-2 px-3">
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 mb-2">
+                                        Sarkaari Nokari
+                                    </p>
+                                </div>
+                            )}
 
-                            {sarkaariNokariItems.map((item) => {
+                            {isSarkariTrack && sarkaariNokariItems.map((item) => {
                                 const isActive = pathname.startsWith(item.href);
                                 return (
                                     <Link key={item.href} href={item.href} onClick={onClose}>

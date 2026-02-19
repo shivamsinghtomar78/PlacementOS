@@ -1,26 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUserId, unauthorized } from "@/lib/auth";
+import { getAuthUser, unauthorized } from "@/lib/auth";
 import Subject from "@/models/Subject";
 import Topic from "@/models/Topic";
 import Subtopic from "@/models/Subtopic";
 import { createSubjectSchema, parseBody } from "@/lib/validations";
+import { getScopedFilter, getTrackContextFromUser } from "@/lib/track-context";
 
 // GET /api/subjects — List all subjects for user with aggregated counts
 export async function GET(req: NextRequest) {
     try {
-        const userId = await getAuthUserId(req);
-        if (!userId) return unauthorized();
+        const authUser = await getAuthUser(req);
+        if (!authUser) return unauthorized();
+        const scope = getScopedFilter(authUser._id, getTrackContextFromUser(authUser));
 
         const [subjects, topicCounts, subtopicCounts] = await Promise.all([
-            Subject.find({ userId })
+            Subject.find(scope)
                 .sort({ order: 1 })
                 .lean(),
             Topic.aggregate([
-                { $match: { userId } },
+                { $match: scope },
                 { $group: { _id: "$subjectId", count: { $sum: 1 } } },
             ]),
             Subtopic.aggregate([
-                { $match: { userId } },
+                { $match: scope },
                 {
                     $group: {
                         _id: "$subjectId",
@@ -71,8 +73,9 @@ export async function GET(req: NextRequest) {
 // POST /api/subjects — Create new subject
 export async function POST(req: NextRequest) {
     try {
-        const userId = await getAuthUserId(req);
-        if (!userId) return unauthorized();
+        const authUser = await getAuthUser(req);
+        if (!authUser) return unauthorized();
+        const scope = getScopedFilter(authUser._id, getTrackContextFromUser(authUser));
 
         const body = await req.json();
         const parsed = parseBody(createSubjectSchema, body);
@@ -80,10 +83,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
 
-        const count = await Subject.countDocuments({ userId });
+        const count = await Subject.countDocuments(scope);
 
         const subject = await Subject.create({
-            userId,
+            ...scope,
             name: parsed.data.name,
             description: parsed.data.description || "",
             icon: parsed.data.icon || "📚",

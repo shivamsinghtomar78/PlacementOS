@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUserId, unauthorized } from "@/lib/auth";
+import { getAuthUser, unauthorized } from "@/lib/auth";
 import Subject from "@/models/Subject";
 import Topic from "@/models/Topic";
 import Subtopic from "@/models/Subtopic";
 import { updateSubjectSchema, parseBody } from "@/lib/validations";
+import { getScopedFilter, getTrackContextFromUser } from "@/lib/track-context";
 
 // PUT /api/subjects/[id] — Update subject
 export async function PUT(
@@ -11,8 +12,9 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const userId = await getAuthUserId(req);
-        if (!userId) return unauthorized();
+        const authUser = await getAuthUser(req);
+        if (!authUser) return unauthorized();
+        const scope = getScopedFilter(authUser._id, getTrackContextFromUser(authUser));
 
         const { id } = await params;
         const body = await req.json();
@@ -31,7 +33,7 @@ export async function PUT(
         if (parsed.data.estimatedHours !== undefined) updateData.estimatedHours = parsed.data.estimatedHours;
 
         const subject = await Subject.findOneAndUpdate(
-            { _id: id, userId },
+            { _id: id, ...scope },
             { $set: updateData },
             { new: true }
         );
@@ -53,17 +55,18 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const userId = await getAuthUserId(req);
-        if (!userId) return unauthorized();
+        const authUser = await getAuthUser(req);
+        if (!authUser) return unauthorized();
+        const scope = getScopedFilter(authUser._id, getTrackContextFromUser(authUser));
 
         const { id } = await params;
 
         // Delete all subtopics under this subject
-        await Subtopic.deleteMany({ subjectId: id, userId });
+        await Subtopic.deleteMany({ subjectId: id, ...scope });
         // Delete all topics under this subject
-        await Topic.deleteMany({ subjectId: id, userId });
+        await Topic.deleteMany({ subjectId: id, ...scope });
         // Delete the subject
-        const subject = await Subject.findOneAndDelete({ _id: id, userId });
+        const subject = await Subject.findOneAndDelete({ _id: id, ...scope });
 
         if (!subject) {
             return NextResponse.json({ error: "Subject not found" }, { status: 404 });

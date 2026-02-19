@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-import { getAuthUserId, unauthorized } from "@/lib/auth";
+import { getAuthUser, unauthorized } from "@/lib/auth";
 import Subject from "@/models/Subject";
 import Topic from "@/models/Topic";
 import Subtopic from "@/models/Subtopic";
 import DailyProgress from "@/models/DailyProgress";
+import { getScopedFilter, getTrackContextFromUser } from "@/lib/track-context";
 
 export const dynamic = 'force-dynamic';
 
@@ -16,15 +17,17 @@ type DailyStat = {
 
 export async function GET(req: NextRequest) {
     try {
-        const userId = await getAuthUserId(req);
-        if (!userId) return unauthorized();
+        const authUser = await getAuthUser(req);
+        if (!authUser) return unauthorized();
+        const context = getTrackContextFromUser(authUser);
+        const scope = getScopedFilter(authUser._id, context);
 
         await dbConnect();
 
         // ─── Aggregation: Overall + Per-Subject Progress ─────────────────────
         const [subjectProgressAgg, subjects, topicCount] = await Promise.all([
             Subtopic.aggregate([
-                { $match: { userId } },
+                { $match: scope },
                 {
                     $group: {
                         _id: { subjectId: "$subjectId", status: "$status" },
@@ -32,8 +35,8 @@ export async function GET(req: NextRequest) {
                     },
                 },
             ]),
-            Subject.find({ userId }).sort({ order: 1 }).lean(),
-            Topic.countDocuments({ userId }),
+            Subject.find(scope).sort({ order: 1 }).lean(),
+            Topic.countDocuments(scope),
         ]);
 
         // Build per-subject progress from aggregation
@@ -86,7 +89,7 @@ export async function GET(req: NextRequest) {
         const [revisionDueResult] = await Subtopic.aggregate([
             {
                 $match: {
-                    userId,
+                    ...scope,
                     "revision.learnedDate": { $exists: true, $ne: null },
                 },
             },
@@ -123,7 +126,7 @@ export async function GET(req: NextRequest) {
         yearAgo.setDate(yearAgo.getDate() - 365);
 
         const heatmapData = await DailyProgress.find({
-            userId,
+            ...scope,
             date: { $gte: yearAgo },
         }).sort({ date: -1 }).lean();
 
@@ -160,6 +163,8 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({
             metrics: {
+                track: context.track,
+                department: context.department,
                 overallProgress,
                 totalSubjects: subjects.length,
                 totalTopics: topicCount,

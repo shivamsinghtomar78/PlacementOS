@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUserId, unauthorized } from "@/lib/auth";
+import { getAuthUser, unauthorized } from "@/lib/auth";
 import Topic from "@/models/Topic";
 import Subtopic from "@/models/Subtopic";
 import { updateTopicSchema, parseBody } from "@/lib/validations";
+import { getScopedFilter, getTrackContextFromUser } from "@/lib/track-context";
 
 export async function PUT(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const userId = await getAuthUserId(req);
-        if (!userId) return unauthorized();
+        const authUser = await getAuthUser(req);
+        if (!authUser) return unauthorized();
+        const scope = getScopedFilter(authUser._id, getTrackContextFromUser(authUser));
 
         const { id } = await params;
         const body = await req.json();
@@ -27,7 +29,7 @@ export async function PUT(
         if (parsed.data.estimatedHours !== undefined) updateData.estimatedHours = parsed.data.estimatedHours;
 
         const topic = await Topic.findOneAndUpdate(
-            { _id: id, userId },
+            { _id: id, ...scope },
             { $set: updateData },
             { new: true }
         );
@@ -45,13 +47,14 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const userId = await getAuthUserId(req);
-        if (!userId) return unauthorized();
+        const authUser = await getAuthUser(req);
+        if (!authUser) return unauthorized();
+        const scope = getScopedFilter(authUser._id, getTrackContextFromUser(authUser));
 
         const { id } = await params;
 
-        await Subtopic.deleteMany({ topicId: id, userId });
-        const topic = await Topic.findOneAndDelete({ _id: id, userId });
+        await Subtopic.deleteMany({ topicId: id, ...scope });
+        const topic = await Topic.findOneAndDelete({ _id: id, ...scope });
 
         if (!topic) return NextResponse.json({ error: "Topic not found" }, { status: 404 });
         return NextResponse.json({ message: "Topic deleted successfully" });

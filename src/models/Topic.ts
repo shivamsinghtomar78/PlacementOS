@@ -4,6 +4,8 @@ export interface ITopic extends Document {
     _id: mongoose.Types.ObjectId;
     subjectId: mongoose.Types.ObjectId;
     userId: mongoose.Types.ObjectId;
+    track: "placement" | "sarkari";
+    department: string;
     name: string;
     description?: string;
     order: number;
@@ -18,6 +20,8 @@ const TopicSchema = new Schema<ITopic>(
     {
         subjectId: { type: Schema.Types.ObjectId, ref: "Subject", required: true },
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        track: { type: String, enum: ["placement", "sarkari"], default: "placement", required: true },
+        department: { type: String, default: "general", required: true },
         name: { type: String, required: true },
         description: { type: String },
         order: { type: Number, default: 0 },
@@ -32,9 +36,9 @@ const TopicSchema = new Schema<ITopic>(
     { timestamps: true }
 );
 
-TopicSchema.index({ subjectId: 1, userId: 1, order: 1 });
-TopicSchema.index({ userId: 1 });
-TopicSchema.index({ userId: 1, name: 1 });
+TopicSchema.index({ subjectId: 1, userId: 1, track: 1, department: 1, order: 1 });
+TopicSchema.index({ userId: 1, track: 1, department: 1 });
+TopicSchema.index({ userId: 1, track: 1, department: 1, name: 1 });
 
 const Topic: Model<ITopic> =
     mongoose.models.Topic || mongoose.model<ITopic>("Topic", TopicSchema);

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUserId, unauthorized } from "@/lib/auth";
+import { getAuthUser, unauthorized } from "@/lib/auth";
 import Subject from "@/models/Subject";
 import Topic from "@/models/Topic";
 import Subtopic from "@/models/Subtopic";
+import { getScopedFilter, getTrackContextFromUser } from "@/lib/track-context";
 
 function escapeRegex(value: string) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -10,8 +11,9 @@ function escapeRegex(value: string) {
 
 export async function GET(req: NextRequest) {
     try {
-        const userId = await getAuthUserId(req);
-        if (!userId) return unauthorized();
+        const authUser = await getAuthUser(req);
+        if (!authUser) return unauthorized();
+        const scope = getScopedFilter(authUser._id, getTrackContextFromUser(authUser));
 
         const { searchParams } = new URL(req.url);
         const query = (searchParams.get("q") || "").trim();
@@ -23,21 +25,21 @@ export async function GET(req: NextRequest) {
 
         const [subjects, topics, subtopics] = await Promise.all([
             Subject.find({
-                userId,
+                ...scope,
                 name: { $regex: prefixPattern },
             })
                 .select("name icon color")
                 .limit(5)
                 .lean(),
             Topic.find({
-                userId,
+                ...scope,
                 name: { $regex: prefixPattern },
             })
                 .select("name")
                 .limit(10)
                 .lean(),
             Subtopic.find({
-                userId,
+                ...scope,
                 name: { $regex: prefixPattern },
             })
                 .select("name")

@@ -38,6 +38,8 @@ export interface ISubtopic extends Document {
     topicId: mongoose.Types.ObjectId;
     subjectId: mongoose.Types.ObjectId;
     userId: mongoose.Types.ObjectId;
+    track: "placement" | "sarkari";
+    department: string;
     name: string;
     description?: string;
     status: 0 | 1 | 2;
@@ -101,6 +103,8 @@ const SubtopicSchema = new Schema<ISubtopic>(
         topicId: { type: Schema.Types.ObjectId, ref: "Topic", required: true },
         subjectId: { type: Schema.Types.ObjectId, ref: "Subject", required: true },
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        track: { type: String, enum: ["placement", "sarkari"], default: "placement", required: true },
+        department: { type: String, default: "general", required: true },
         name: { type: String, required: true },
         description: { type: String },
         status: { type: Number, enum: [0, 1, 2], default: 0 },
@@ -116,11 +120,11 @@ const SubtopicSchema = new Schema<ISubtopic>(
     { timestamps: true }
 );
 
-SubtopicSchema.index({ topicId: 1, userId: 1, order: 1 });
-SubtopicSchema.index({ userId: 1 });
-SubtopicSchema.index({ subjectId: 1, userId: 1 });
-SubtopicSchema.index({ status: 1 });
-SubtopicSchema.index({ userId: 1, name: 1 });
+SubtopicSchema.index({ topicId: 1, userId: 1, track: 1, department: 1, order: 1 });
+SubtopicSchema.index({ userId: 1, track: 1, department: 1 });
+SubtopicSchema.index({ subjectId: 1, userId: 1, track: 1, department: 1 });
+SubtopicSchema.index({ status: 1, userId: 1, track: 1, department: 1 });
+SubtopicSchema.index({ userId: 1, track: 1, department: 1, name: 1 });
 
 const Subtopic: Model<ISubtopic> =
     mongoose.models.Subtopic || mongoose.model<ISubtopic>("Subtopic", SubtopicSchema);

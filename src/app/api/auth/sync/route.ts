@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { authSyncSchema, parseBody } from "@/lib/validations";
+import { normalizeDepartment, normalizeTrack } from "@/lib/track-context";
 
 export async function POST(req: NextRequest) {
     try {
@@ -31,6 +32,8 @@ export async function POST(req: NextRequest) {
                     focusMode: parsed.data.preferences?.focusMode || false,
                     notifications: parsed.data.preferences?.notifications ?? true,
                     placementMode: parsed.data.preferences?.placementMode || false,
+                    activeTrack: normalizeTrack(parsed.data.preferences?.activeTrack),
+                    sarkariDepartment: normalizeDepartment(parsed.data.preferences?.sarkariDepartment),
                 },
             });
         } else {
@@ -46,7 +49,9 @@ export async function POST(req: NextRequest) {
             if (parsed.data.preferences) {
                 user.preferences = {
                     ...user.preferences,
-                    ...parsed.data.preferences
+                    ...parsed.data.preferences,
+                    activeTrack: normalizeTrack(parsed.data.preferences.activeTrack ?? user.preferences.activeTrack),
+                    sarkariDepartment: normalizeDepartment(parsed.data.preferences.sarkariDepartment ?? user.preferences.sarkariDepartment),
                 };
             }
 

@@ -2,6 +2,8 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface INotification extends Document {
     userId: mongoose.Types.ObjectId;
+    track: "placement" | "sarkari";
+    department: string;
     title: string;
     message: string;
     type: "info" | "success" | "warning" | "error";
@@ -13,6 +15,8 @@ export interface INotification extends Document {
 const NotificationSchema = new Schema<INotification>(
     {
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        track: { type: String, enum: ["placement", "sarkari"], default: "placement", required: true },
+        department: { type: String, default: "general", required: true },
         title: { type: String, required: true },
         message: { type: String, required: true },
         type: {
@@ -26,8 +30,8 @@ const NotificationSchema = new Schema<INotification>(
     { timestamps: true }
 );
 
-NotificationSchema.index({ userId: 1, createdAt: -1 });
-NotificationSchema.index({ userId: 1, read: 1, createdAt: -1 });
+NotificationSchema.index({ userId: 1, track: 1, department: 1, createdAt: -1 });
+NotificationSchema.index({ userId: 1, track: 1, department: 1, read: 1, createdAt: -1 });
 
 export default mongoose.models.Notification ||
     mongoose.model<INotification>("Notification", NotificationSchema);

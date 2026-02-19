@@ -14,6 +14,8 @@ export interface IUser extends Document {
         focusMode: boolean;
         notifications: boolean;
         placementMode: boolean;
+        activeTrack: "placement" | "sarkari";
+        sarkariDepartment: "mechanical" | "computer-science" | "ece" | "ec";
     };
     createdAt: Date;
     updatedAt: Date;
@@ -33,6 +35,8 @@ const UserSchema = new Schema<IUser>(
             focusMode: { type: Boolean, default: false },
             notifications: { type: Boolean, default: true },
             placementMode: { type: Boolean, default: false },
+            activeTrack: { type: String, enum: ["placement", "sarkari"], default: "placement" },
+            sarkariDepartment: { type: String, enum: ["mechanical", "computer-science", "ece", "ec"], default: "mechanical" },
         },
     },
     { timestamps: true }

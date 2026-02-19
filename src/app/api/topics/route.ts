@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
-import { getAuthUserId, unauthorized } from "@/lib/auth";
+import { getAuthUser, unauthorized } from "@/lib/auth";
 import Topic from "@/models/Topic";
 import Subtopic from "@/models/Subtopic";
+import Subject from "@/models/Subject";
 import { createTopicSchema, parseBody } from "@/lib/validations";
+import { getScopedFilter, getTrackContextFromUser } from "@/lib/track-context";
 
 // GET /api/topics?subjectId=xxx — List topics for a subject with aggregated counts
 export async function GET(req: NextRequest) {
     try {
-        const userId = await getAuthUserId(req);
-        if (!userId) return unauthorized();
+        const authUser = await getAuthUser(req);
+        if (!authUser) return unauthorized();
+        const scope = getScopedFilter(authUser._id, getTrackContextFromUser(authUser));
 
         const { searchParams } = new URL(req.url);
         const subjectId = searchParams.get("subjectId");
@@ -21,11 +24,11 @@ export async function GET(req: NextRequest) {
         const subjectObjectId = new mongoose.Types.ObjectId(subjectId);
 
         const [topics, subtopicCounts] = await Promise.all([
-            Topic.find({ userId, subjectId: subjectObjectId })
+            Topic.find({ ...scope, subjectId: subjectObjectId })
                 .sort({ order: 1 })
                 .lean(),
             Subtopic.aggregate([
-                { $match: { userId, subjectId: subjectObjectId } },
+                { $match: { ...scope, subjectId: subjectObjectId } },
                 {
                     $group: {
                         _id: "$topicId",
@@ -71,8 +74,9 @@ export async function GET(req: NextRequest) {
 // POST /api/topics — Create topic
 export async function POST(req: NextRequest) {
     try {
-        const userId = await getAuthUserId(req);
-        if (!userId) return unauthorized();
+        const authUser = await getAuthUser(req);
+        if (!authUser) return unauthorized();
+        const scope = getScopedFilter(authUser._id, getTrackContextFromUser(authUser));
 
         const body = await req.json();
         const parsed = parseBody(createTopicSchema, body);
@@ -80,11 +84,16 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
 
-        const count = await Topic.countDocuments({ userId, subjectId: parsed.data.subjectId });
+        const subject = await Subject.findOne({ _id: parsed.data.subjectId, ...scope }).select("_id").lean();
+        if (!subject) {
+            return NextResponse.json({ error: "Subject not found in current mode" }, { status: 404 });
+        }
+
+        const count = await Topic.countDocuments({ ...scope, subjectId: parsed.data.subjectId });
 
         const topic = await Topic.create({
             subjectId: parsed.data.subjectId,
-            userId,
+            ...scope,
             name: parsed.data.name,
             description: parsed.data.description || "",
             order: count,

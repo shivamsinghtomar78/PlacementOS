@@ -36,6 +36,8 @@ interface DbUser {
         focusMode: boolean;
         notifications: boolean;
         placementMode: boolean;
+        activeTrack: "placement" | "sarkari";
+        sarkariDepartment: "mechanical" | "computer-science" | "ece" | "ec";
     };
     placementDeadline?: string;
     targetCompanies: string[];

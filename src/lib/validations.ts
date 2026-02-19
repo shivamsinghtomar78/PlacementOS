@@ -15,6 +15,8 @@ export const authSyncSchema = z.object({
         focusMode: z.boolean().optional(),
         notifications: z.boolean().optional(),
         placementMode: z.boolean().optional(),
+        activeTrack: z.enum(["placement", "sarkari"]).optional(),
+        sarkariDepartment: z.enum(["mechanical", "computer-science", "ece", "ec"]).optional(),
     }).optional(),
 });
 

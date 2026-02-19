@@ -3,7 +3,8 @@ import dbConnect from "@/lib/db";
 import Subject from "@/models/Subject";
 import Topic from "@/models/Topic";
 import Subtopic from "@/models/Subtopic";
-import { getAuthUserId, unauthorized } from "@/lib/auth";
+import { getAuthUser, unauthorized } from "@/lib/auth";
+import { getScopedFilter, getTrackContextFromUser } from "@/lib/track-context";
 import { ENGINEERING_MATHS_SYLLABUS } from "@/data/engineering-maths";
 import { ENGINEERING_MECHANICS_SYLLABUS } from "@/data/engineering-mechanics";
 import { STRENGTH_OF_MATERIALS_SYLLABUS } from "@/data/strength-of-materials";
@@ -954,21 +955,50 @@ const SUBJECTS = [
     },
 ];
 
+const PLACEMENT_SUBJECT_NAMES = new Set([
+    "DSA (Concept Revision)",
+    "SQL + DE Foundations",
+    "Low Level Design (LLD)",
+    "OOPS",
+    "Computer Networks",
+    "Database Management (DBMS)",
+    "Operating Systems",
+]);
+
 export async function POST(req: NextRequest) {
     try {
-        const userId = await getAuthUserId(req);
-        if (!userId) return unauthorized();
+        const authUser = await getAuthUser(req);
+        if (!authUser) return unauthorized();
+        const context = getTrackContextFromUser(authUser);
+        const scope = getScopedFilter(authUser._id, context);
 
         await dbConnect();
         const results: { subject: string; topics: number; subtopics: number }[] = [];
         const skipped: string[] = [];
+        const deferred: string[] = [];
+
+        const scopedSubjects = SUBJECTS.filter((subject) => {
+            const isPlacementSubject = PLACEMENT_SUBJECT_NAMES.has(subject.name);
+            if (context.track === "placement") return isPlacementSubject;
+            if (context.department !== "mechanical") return false;
+            return !isPlacementSubject;
+        });
+
+        if (context.track === "sarkari" && context.department !== "mechanical") {
+            return NextResponse.json({
+                message: `No syllabus seed configured yet for ${context.department}. Add datasets and retry.`,
+                created: [],
+                skipped: [],
+                deferred: [context.department],
+            }, { status: 200 });
+        }
 
         // Get existing subject count for ordering
-        let orderStart = await Subject.countDocuments({ userId });
+        let orderStart = await Subject.countDocuments(scope);
 
-        for (const subjectDef of SUBJECTS) {
+        for (const subjectDef of scopedSubjects) {
             // Check if subject already exists
-            const existing = await Subject.findOne({ userId, name: subjectDef.name });
+            const existing = await Subject.findOne({ ...scope, name: subjectDef.name });
             if (existing) {
                 skipped.push(subjectDef.name);
                 continue;
@@ -976,7 +1006,7 @@ export async function POST(req: NextRequest) {
 
             // Create subject
             const subject = await Subject.create({
-                userId,
+                ...scope,
                 name: subjectDef.name,
                 description: subjectDef.description,
                 icon: subjectDef.icon,
@@ -993,7 +1023,7 @@ export async function POST(req: NextRequest) {
 
                 const topic = await Topic.create({
                     subjectId: subject._id,
-                    userId,
+                    ...scope,
                     name: topicData.name,
                     description: "",
                     order: i,
@@ -1005,7 +1035,7 @@ export async function POST(req: NextRequest) {
                     await Subtopic.create({
                         topicId: topic._id,
                         subjectId: subject._id,
-                        userId,
+                        ...scope,
                         name: topicData.subtopics[j],
                         description: "",
                         order: j,
@@ -1038,6 +1068,8 @@ export async function POST(req: NextRequest) {
             message: "Syllabus seeded successfully!",
             created: results,
             skipped,
+            deferred,
+            context,
         }, { status: 201 });
     } catch (error) {
         console.error("Seed error:", error);

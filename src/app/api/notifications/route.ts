@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUserId, unauthorized } from "@/lib/auth";
+import { getAuthUser, unauthorized } from "@/lib/auth";
 import Notification from "@/models/Notification";
 import { notificationPatchSchema, parseBody } from "@/lib/validations";
+import { getScopedFilter, getTrackContextFromUser } from "@/lib/track-context";
 
 export async function GET(req: NextRequest) {
     try {
-        const userId = await getAuthUserId(req);
-        if (!userId) return unauthorized();
+        const authUser = await getAuthUser(req);
+        if (!authUser) return unauthorized();
+        const scope = getScopedFilter(authUser._id, getTrackContextFromUser(authUser));
 
-        const notifications = await Notification.find({ userId })
+        const notifications = await Notification.find(scope)
             .select("title message type link read createdAt")
             .sort({ createdAt: -1 })
             .limit(20)
@@ -23,8 +25,9 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
     try {
-        const userId = await getAuthUserId(req);
-        if (!userId) return unauthorized();
+        const authUser = await getAuthUser(req);
+        if (!authUser) return unauthorized();
+        const scope = getScopedFilter(authUser._id, getTrackContextFromUser(authUser));
 
         const body = await req.json();
         const parsed = parseBody(notificationPatchSchema, body);
@@ -37,12 +40,12 @@ export async function PATCH(req: NextRequest) {
                 return NextResponse.json({ error: "notificationId is required for markAsRead" }, { status: 400 });
             }
             await Notification.updateOne(
-                { _id: parsed.data.notificationId, userId },
+                { _id: parsed.data.notificationId, ...scope },
                 { read: true }
             );
         } else if (parsed.data.action === "markAllAsRead") {
             await Notification.updateMany(
-                { userId, read: false },
+                { ...scope, read: false },
                 { read: true }
             );
         }
