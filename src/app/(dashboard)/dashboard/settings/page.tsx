@@ -151,7 +151,7 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="space-y-6 max-w-2xl">
+        <div className="space-y-6 max-w-5xl">
             <PageHeader
                 icon={<Settings className="w-6 h-6 text-indigo-400" />}
                 title="Settings"
@@ -202,118 +202,120 @@ export default function SettingsPage() {
                 </Card>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <Card className={APP_CARD_CLASS}>
-                    <CardHeader>
-                        <CardTitle className="text-white text-lg flex items-center gap-2">
-                            <UserIcon className="w-5 h-5 text-indigo-400" />
-                            Profile
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div>
-                            <Label className="text-slate-300">Name</Label>
-                            <Input
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className="bg-slate-800 border-slate-700 text-white mt-1"
-                            />
-                        </div>
-                        <div>
-                            <Label className="text-slate-300">Email</Label>
-                            <Input
-                                value={user?.email || ""}
-                                disabled
-                                className="bg-slate-800/50 border-slate-700 text-slate-500 mt-1"
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
-            </motion.div>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                    <Card className={APP_CARD_CLASS}>
+                        <CardHeader>
+                            <CardTitle className="text-white text-lg flex items-center gap-2">
+                                <UserIcon className="w-5 h-5 text-indigo-400" />
+                                Profile
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <Label className="text-slate-300">Name</Label>
+                                <Input
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="bg-slate-800 border-slate-700 text-white mt-1"
+                                />
+                            </div>
+                            <div>
+                                <Label className="text-slate-300">Email</Label>
+                                <Input
+                                    value={user?.email || ""}
+                                    disabled
+                                    className="bg-slate-800/50 border-slate-700 text-slate-500 mt-1"
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <Card className={APP_CARD_CLASS}>
-                    <CardHeader>
-                        <CardTitle className="text-white text-lg flex items-center gap-2">
-                            <Target className="w-5 h-5 text-indigo-400" />
-                            Preparation Goals
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div>
-                            <Label className="text-slate-300">Daily Target (subtopics)</Label>
-                            <Input
-                                type="number"
-                                value={dailyTarget}
-                                onChange={(e) => setDailyTarget(Number(e.target.value))}
-                                min={1}
-                                max={50}
-                                className="bg-slate-800 border-slate-700 text-white mt-1 w-32"
-                            />
-                        </div>
-                        <div>
-                            <Label className="text-slate-300 flex items-center gap-2">
-                                <Calendar className="w-4 h-4" />
-                                Placement Deadline
-                            </Label>
-                            <Input
-                                type="date"
-                                value={placementDeadline}
-                                onChange={(e) => setPlacementDeadline(e.target.value)}
-                                className="bg-slate-800 border-slate-700 text-white mt-1 w-48"
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
-            </motion.div>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                    <Card className={APP_CARD_CLASS}>
+                        <CardHeader>
+                            <CardTitle className="text-white text-lg flex items-center gap-2">
+                                <Target className="w-5 h-5 text-indigo-400" />
+                                Preparation Goals
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <Label className="text-slate-300">Daily Target (subtopics)</Label>
+                                <Input
+                                    type="number"
+                                    value={dailyTarget}
+                                    onChange={(e) => setDailyTarget(Number(e.target.value))}
+                                    min={1}
+                                    max={50}
+                                    className="bg-slate-800 border-slate-700 text-white mt-1 w-32"
+                                />
+                            </div>
+                            <div>
+                                <Label className="text-slate-300 flex items-center gap-2">
+                                    <Calendar className="w-4 h-4" />
+                                    Placement Deadline
+                                </Label>
+                                <Input
+                                    type="date"
+                                    value={placementDeadline}
+                                    onChange={(e) => setPlacementDeadline(e.target.value)}
+                                    className="bg-slate-800 border-slate-700 text-white mt-1 w-56"
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                <Card className={APP_CARD_CLASS}>
-                    <CardHeader>
-                        <CardTitle className="text-white text-lg">Target Companies</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex flex-wrap gap-2">
-                            {COMPANIES.map((company) => (
-                                <Badge
-                                    key={company}
-                                    variant="outline"
-                                    onClick={() => toggleCompany(company)}
-                                    className={`cursor-pointer transition-all ${targetCompanies.includes(company)
-                                        ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-300"
-                                        : "border-slate-700 text-slate-500 hover:border-slate-600"
-                                        }`}
-                                >
-                                    {company}
-                                </Badge>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-            </motion.div>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                    <Card className={APP_CARD_CLASS}>
+                        <CardHeader>
+                            <CardTitle className="text-white text-lg">Target Companies</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex flex-wrap gap-2">
+                                {COMPANIES.map((company) => (
+                                    <Badge
+                                        key={company}
+                                        variant="outline"
+                                        onClick={() => toggleCompany(company)}
+                                        className={`cursor-pointer transition-all rounded-full px-3 py-1 ${targetCompanies.includes(company)
+                                            ? "bg-indigo-500/25 border-indigo-400/40 text-indigo-200 shadow-[0_0_10px_rgba(99,102,241,0.2)]"
+                                            : "border-slate-700 text-slate-500 hover:border-slate-500 hover:text-slate-300"
+                                            }`}
+                                    >
+                                        {company}
+                                    </Badge>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                <Card className={APP_CARD_CLASS}>
-                    <CardHeader>
-                        <CardTitle className="text-white text-lg flex items-center gap-2">
-                            <Bell className="w-5 h-5 text-indigo-400" />
-                            Preferences
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-3">
-                            <Checkbox
-                                checked={notifications}
-                                onCheckedChange={(v) => setNotifications(!!v)}
-                                className="border-slate-600 data-[state=checked]:bg-indigo-500"
-                            />
-                            <span className="text-sm text-slate-300">
-                                Enable revision reminders and notifications
-                            </span>
-                        </div>
-                    </CardContent>
-                </Card>
-            </motion.div>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                    <Card className={APP_CARD_CLASS}>
+                        <CardHeader>
+                            <CardTitle className="text-white text-lg flex items-center gap-2">
+                                <Bell className="w-5 h-5 text-indigo-400" />
+                                Preferences
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center gap-3">
+                                <Checkbox
+                                    checked={notifications}
+                                    onCheckedChange={(v) => setNotifications(!!v)}
+                                    className="border-slate-600 data-[state=checked]:bg-indigo-500"
+                                />
+                                <span className="text-sm text-slate-300">
+                                    Enable revision reminders and notifications
+                                </span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
+            </div>
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
                 <Card className={APP_CARD_CLASS}>
@@ -337,47 +339,49 @@ export default function SettingsPage() {
                                 <Database className="w-4 h-4" />
                                 {seeding ? "Seeding..." : "Load Mode Syllabus"}
                             </Button>
-                            {seedResult && (
-                                <motion.span
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    className="text-sm text-slate-300"
-                                >
-                                    {seedResult}
-                                </motion.span>
-                            )}
                         </div>
+                        {seedResult && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="rounded-xl border border-slate-700/60 bg-slate-900/60 p-3 text-sm text-slate-300 break-words"
+                            >
+                                {seedResult}
+                            </motion.div>
+                        )}
                     </CardContent>
                 </Card>
             </motion.div>
 
-            <div className="flex items-center gap-3">
-                <Button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="bg-indigo-500 hover:bg-indigo-600 text-white gap-2"
-                >
-                    <Save className="w-4 h-4" />
-                    {saving ? "Saving..." : "Save Changes"}
-                </Button>
-                {saved && (
-                    <motion.span
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="text-green-400 text-sm"
+            <div className="sticky bottom-4 z-20">
+                <div className="rounded-2xl border border-slate-800/70 bg-slate-950/80 backdrop-blur-md px-4 py-3 flex flex-wrap items-center gap-3">
+                    <Button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="bg-indigo-500 hover:bg-indigo-600 text-white gap-2"
                     >
-                        Saved successfully
-                    </motion.span>
-                )}
-                {saveError && (
-                    <motion.span
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="text-red-400 text-sm"
-                    >
-                        {saveError}
-                    </motion.span>
-                )}
+                        <Save className="w-4 h-4" />
+                        {saving ? "Saving..." : "Save Changes"}
+                    </Button>
+                    {saved && (
+                        <motion.span
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="text-green-400 text-sm"
+                        >
+                            Saved successfully
+                        </motion.span>
+                    )}
+                    {saveError && (
+                        <motion.span
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="text-red-400 text-sm"
+                        >
+                            {saveError}
+                        </motion.span>
+                    )}
+                </div>
             </div>
         </div>
     );

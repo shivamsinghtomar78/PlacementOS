@@ -58,6 +58,10 @@ export function Header() {
     const scopeKey = getClientScopeKey(dbUser?.preferences);
     const activeTrack = dbUser?.preferences?.activeTrack || "placement";
     const sarkariDept = dbUser?.preferences?.sarkariDepartment || "mechanical";
+    const sarkariDeptLabel = sarkariDept
+        .split("-")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
 
     // Search query
     const { data: searchData, isLoading: searchLoading } = useQuery({
@@ -206,7 +210,7 @@ export function Header() {
                         </Badge>
                         {activeTrack === "sarkari" && (
                             <Badge className="bg-slate-900/70 text-slate-300 border border-slate-700 text-[10px] uppercase tracking-wider">
-                                {sarkariDept}
+                                {sarkariDeptLabel}
                             </Badge>
                         )}
                     </div>
