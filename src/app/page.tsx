@@ -20,7 +20,6 @@ import { ThreeDCardDemo } from "@/components/custom/ThreeDCardDemo";
 import { BackgroundGradientAnimation } from "@/components/ui/background-gradient-animation";
 import { ProgressiveBlur } from "@/components/custom/ProgressiveBlur";
 import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect";
-import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import { Footer } from "@/components/layout/Footer";
 import { PinContainer } from "@/components/ui/3d-pin";
 import NumberTicker from "@/components/ui/number-ticker";
@@ -199,7 +198,7 @@ export default function HomePage() {
                   <PlayCircle className="w-4 h-4" />
                   Watch 3D Preview
                 </ModalTrigger>
-                <ModalBody className="bg-slate-950 border border-slate-800 text-white md:max-w-[58rem]">
+                <ModalBody className="bg-slate-950 border border-slate-800 text-white md:max-w-[44rem]">
                   <ModalContent className="p-4 md:p-6">
                     <h3 className="text-xl md:text-2xl font-semibold text-white text-center">
                       Interactive Prep Surface
@@ -268,7 +267,7 @@ export default function HomePage() {
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="absolute right-2 top-2 text-slate-600 transition-colors hover:text-slate-300"
+                      className="absolute right-2 top-2 text-slate-600 transition-colors hover:text-slate-300 hidden sm:inline-flex"
                       aria-label={`About ${f.label}`}
                     >
                       <CircleHelp className="w-3.5 h-3.5" />
@@ -320,22 +319,6 @@ export default function HomePage() {
             </div>
           </SectionReveal>
 
-          <SectionReveal className="mt-8 sm:mt-12 w-full flex items-center justify-center relative z-10 [content-visibility:auto] [contain-intrinsic-size:760px]">
-            <ContainerScroll
-              titleComponent={
-                <h2 className="text-4xl font-semibold text-black dark:text-white">
-                  Unleash the power of <br />
-                  <span className="text-4xl md:text-[6rem] font-bold mt-1 leading-none bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
-                    Interactive Prep
-                  </span>
-                </h2>
-              }
-            >
-              <div className="h-full relative w-full overflow-hidden bg-white dark:bg-black rounded-2xl flex items-center justify-center">
-                <ThreeDCardDemo />
-              </div>
-            </ContainerScroll>
-          </SectionReveal>
         </main>
 
         <ProgressiveBlur
@@ -348,4 +331,3 @@ export default function HomePage() {
     </div>
   );
 }
-

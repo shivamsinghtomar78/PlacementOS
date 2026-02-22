@@ -9,7 +9,6 @@ import { motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { getClientScopeKey } from "@/lib/track-context";
-import { Footer } from "@/components/layout/Footer";
 import { BackgroundGradientAnimation } from "@/components/ui/background-gradient-animation";
 import { ProgressiveBlur } from "@/components/custom/ProgressiveBlur";
 import { ShaderBackground } from "@/components/custom/shader-background";
@@ -78,11 +77,11 @@ export default function DashboardLayout({
                     size="90%"
                     blendingValue="hard-light"
                     containerClassName="!absolute !inset-0 !h-full !w-full"
-                    className="opacity-20 mix-blend-screen"
+                    className="opacity-14 mix-blend-screen"
                 />
-                <ShaderBackground className="opacity-60" />
-                <ProgressiveBlur direction="top" className="h-32 z-10" />
-                <ProgressiveBlur direction="bottom" className="h-44 z-10 top-auto bottom-0" />
+                <ShaderBackground className="opacity-35" />
+                <ProgressiveBlur direction="top" className="h-20 z-10" />
+                <ProgressiveBlur direction="bottom" className="h-24 z-10 top-auto bottom-0" />
             </div>
             <Sidebar />
             <div className="relative z-10 flex-1 flex flex-col min-h-screen lg:ml-72">
@@ -95,7 +94,6 @@ export default function DashboardLayout({
                 >
                     {children}
                 </motion.main>
-                <Footer />
             </div>
         </div>
     );

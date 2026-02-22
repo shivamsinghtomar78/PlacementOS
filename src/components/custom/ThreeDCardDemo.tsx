@@ -1,53 +1,94 @@
 "use client";
 
 import React from "react";
+import { Flame, TrendingUp } from "lucide-react";
+
 import { CardBody, CardContainer, CardItem } from "@/components/ui/3d-card";
 
+const subjects = [
+  { name: "DSA", progress: 72, tone: "from-indigo-500 to-indigo-300" },
+  { name: "Core Mechanical", progress: 58, tone: "from-cyan-500 to-cyan-300" },
+  { name: "Aptitude", progress: 81, tone: "from-emerald-500 to-emerald-300" },
+];
+
 export function ThreeDCardDemo() {
-    return (
-        <CardContainer className="inter-var">
-            <CardBody className="bg-gray-50 relative group/card  dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border  ">
-                <CardItem
-                    translateZ="50"
-                    className="text-xl font-bold text-neutral-600 dark:text-white"
-                >
-                    Make things float in air
-                </CardItem>
-                <CardItem
-                    as="p"
-                    translateZ="60"
-                    className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300"
-                >
-                    Hover over this card to unleash the power of CSS perspective
-                </CardItem>
-                <CardItem translateZ="100" className="w-full mt-4">
-                    <img
-                        src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                        height="1000"
-                        width="1000"
-                        className="h-60 w-full object-cover rounded-xl group-hover/card:shadow-xl"
-                        alt="thumbnail"
-                    />
-                </CardItem>
-                <div className="flex justify-between items-center mt-20">
-                    <CardItem
-                        translateZ={20}
-                        as="a"
-                        href="https://twitter.com/mannupaaji"
-                        target="__blank"
-                        className="px-4 py-2 rounded-xl text-xs font-normal dark:text-white"
-                    >
-                        Try now →
-                    </CardItem>
-                    <CardItem
-                        translateZ={20}
-                        as="button"
-                        className="px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold"
-                    >
-                        Sign up
-                    </CardItem>
+  return (
+    <CardContainer containerClassName="py-4" className="w-full">
+      <CardBody className="h-auto w-full max-w-[34rem] rounded-2xl border border-slate-700/80 bg-slate-950/95 p-4 sm:p-6 shadow-[0_20px_60px_rgba(2,6,23,0.65)]">
+        <CardItem
+          translateZ={40}
+          className="text-xs uppercase tracking-[0.18em] text-slate-500"
+        >
+          PlacementOS Live Surface
+        </CardItem>
+
+        <CardItem
+          translateZ={55}
+          as="h3"
+          className="mt-2 text-xl font-semibold text-white"
+        >
+          Intelligent Prep Dashboard
+        </CardItem>
+
+        <CardItem
+          as="p"
+          translateZ={65}
+          className="text-slate-400 text-sm mt-2 leading-relaxed"
+        >
+          A clean, focus-first command center for placement and Sarkari preparation.
+        </CardItem>
+
+        <CardItem
+          translateZ={80}
+          className="mt-5 rounded-xl border border-slate-700 bg-slate-900/80 p-4"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-slate-500">Today</p>
+              <p className="text-white text-lg font-semibold mt-1">4 / 6 tasks complete</p>
+            </div>
+            <div className="rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-indigo-300 text-xs font-medium">
+              +18% this week
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {subjects.map((subject) => (
+              <div key={subject.name} className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-300">{subject.name}</span>
+                  <span className="text-slate-400">{subject.progress}%</span>
                 </div>
-            </CardBody>
-        </CardContainer>
-    );
+                <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full bg-gradient-to-r ${subject.tone}`}
+                    style={{ width: `${subject.progress}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardItem>
+
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+          <CardItem
+            translateZ={35}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-1.5 text-xs text-slate-300"
+          >
+            <Flame className="h-3.5 w-3.5 text-orange-400" />
+            16-day streak
+          </CardItem>
+
+          <CardItem
+            translateZ={35}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-1.5 text-xs font-semibold text-white"
+          >
+            <TrendingUp className="h-3.5 w-3.5" />
+            Open Dashboard
+          </CardItem>
+        </div>
+      </CardBody>
+    </CardContainer>
+  );
 }
+

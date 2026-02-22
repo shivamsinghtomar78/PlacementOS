@@ -24,8 +24,6 @@ import { pusherClient } from "@/lib/pusher-client";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/common/page-header";
 import { SectionReveal } from "@/components/common/section-reveal";
-import { ThreeDCardDemo } from "@/components/custom/ThreeDCardDemo";
-import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
 import {
   Modal,
   ModalBody,
@@ -63,29 +61,6 @@ const CurriculumFocusChart = dynamic(
 function AnimatedNumber({ value }: { value: number }) {
   return <NumberTicker value={value} className="text-white" />;
 }
-
-const studyGroup = [
-  {
-    id: 1,
-    name: "Shivam",
-    designation: "Founder",
-    image: "https://github.com/shadcn.png",
-  },
-  {
-    id: 2,
-    name: "Abhishek",
-    designation: "Preparation Lead",
-    image:
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
-  },
-  {
-    id: 3,
-    name: "Saurabh",
-    designation: "Sarkari Aspirant",
-    image:
-      "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop",
-  },
-];
 
 function CircularProgress({
   progress,
@@ -301,39 +276,31 @@ export default function DashboardPage() {
                 {metrics?.track === "sarkari" ? "Sarkari Mode" : "Placement Mode"}
               </span>
 
-              <div className="flex items-center justify-center">
-                <AnimatedTooltip items={studyGroup} />
-              </div>
-
               <Modal>
-                <ModalTrigger className="bg-white/10 text-white flex justify-center group/modal-btn border border-white/10 px-6 py-2">
-                  <span className="group-hover/modal-btn:translate-x-40 text-center transition duration-500 text-sm font-medium">
-                    Quick Actions
-                  </span>
-                  <div className="-translate-x-40 group-hover/modal-btn:translate-x-0 flex items-center justify-center absolute inset-0 transition duration-500 text-white z-20">
-                    GO
-                  </div>
+                <ModalTrigger className="bg-white/10 text-white border border-white/10 px-4 py-2 text-sm font-medium hover:bg-white/15 transition-colors">
+                  Quick Actions
                 </ModalTrigger>
-                <ModalBody className="bg-slate-950 border border-slate-800 text-white md:max-w-[56rem]">
+                <ModalBody className="bg-slate-950 border border-slate-800 text-white md:max-w-[34rem]">
                   <ModalContent>
-                    <h4 className="text-lg md:text-2xl text-white font-bold text-center mb-2">
-                      Command center is live
+                    <h4 className="text-lg md:text-xl text-white font-bold text-center mb-2">
+                      Quick Actions
                     </h4>
                     <p className="text-center text-sm text-slate-400 mb-5">
-                      Trigger your next session with goal-aware recommendations and live progress visuals.
+                      Start the most impactful next steps for your current preparation cycle.
                     </p>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-center">
-                        <Target className="w-8 h-8 text-indigo-400 mx-auto mb-2" />
-                        <p className="text-sm font-medium text-white">Daily Target</p>
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+                        <p className="text-sm font-medium text-white">Review today&apos;s due revisions</p>
+                        <p className="text-xs text-slate-400 mt-1">Clear overdue queue first to protect retention.</p>
                       </div>
-                      <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
-                        <Flame className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-                        <p className="text-sm font-medium text-white">Focus Session</p>
+                      <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                        <p className="text-sm font-medium text-white">Run one 45-min focus session</p>
+                        <p className="text-xs text-slate-400 mt-1">Finish one weak-topic streak without context switching.</p>
                       </div>
-                    </div>
-                    <div className="mt-4 rounded-xl border border-slate-800 bg-slate-900/70 p-2 max-h-[22rem] overflow-hidden">
-                      <ThreeDCardDemo />
+                      <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+                        <p className="text-sm font-medium text-white">Audit weakest subject trend</p>
+                        <p className="text-xs text-slate-400 mt-1">Use analytics to choose tomorrow&apos;s top priority.</p>
+                      </div>
                     </div>
                   </ModalContent>
                   <ModalFooter className="gap-4 bg-slate-950 border-t border-slate-800">
@@ -592,4 +559,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

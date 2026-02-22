@@ -188,6 +188,7 @@ export default function SettingsPage() {
                 }
             />
 
+            <SectionReveal>
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                 <Card className={APP_CARD_CLASS}>
                     <CardHeader>
@@ -200,7 +201,7 @@ export default function SettingsPage() {
                         <div>
                             <Label className="text-slate-300">Track</Label>
                             <Select value={activeTrack} onValueChange={(v) => handleTrackChange(v as TrackMode)}>
-                                <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1 w-64">
+                                <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1 w-full sm:w-64">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-slate-800 border-slate-700">
@@ -217,7 +218,7 @@ export default function SettingsPage() {
                                     Sarkari Department
                                 </Label>
                                 <Select value={sarkariDepartment} onValueChange={handleDepartmentChange}>
-                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1 w-64">
+                                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1 w-full sm:w-64">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="bg-slate-800 border-slate-700">
@@ -231,6 +232,7 @@ export default function SettingsPage() {
                     </CardContent>
                 </Card>
             </motion.div>
+            </SectionReveal>
 
             {modeSaving && (
                 <p className="text-sm text-indigo-300">Switching mode and loading relevant syllabus...</p>
@@ -313,7 +315,7 @@ export default function SettingsPage() {
                                     onChange={(e) => setDailyTarget(Number(e.target.value))}
                                     min={1}
                                     max={50}
-                                    className="bg-slate-800 border-slate-700 text-white mt-1 w-32"
+                                    className="bg-slate-800 border-slate-700 text-white mt-1 w-full max-w-[10rem] sm:w-32"
                                 />
                             </div>
                             <div>
@@ -325,7 +327,7 @@ export default function SettingsPage() {
                                     type="date"
                                     value={placementDeadline}
                                     onChange={(e) => setPlacementDeadline(e.target.value)}
-                                    className="bg-slate-800 border-slate-700 text-white mt-1 w-56"
+                                    className="bg-slate-800 border-slate-700 text-white mt-1 w-full max-w-xs sm:w-56"
                                 />
                             </div>
                         </CardContent>
