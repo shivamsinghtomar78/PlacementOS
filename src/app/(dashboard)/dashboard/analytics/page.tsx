@@ -13,6 +13,7 @@ import {
     TrendingDown,
     Target,
     Brain,
+    CircleHelp,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,9 @@ import { getClientScopeKey } from "@/lib/track-context";
 import dynamic from "next/dynamic";
 import { PageHeader } from "@/components/common/page-header";
 import { APP_CARD_CLASS } from "@/lib/ui-tokens";
+import NumberTicker from "@/components/ui/number-ticker";
+import { SectionReveal } from "@/components/common/section-reveal";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const SubjectCompletionChart = dynamic(
     () => import("@/components/dashboard/SubjectCompletionChart"),
@@ -127,6 +131,16 @@ export default function AnalyticsPage() {
                     icon={<BarChart3 className="w-6 h-6 text-indigo-400" />}
                     title="Analytics & Insights"
                     subtitle="AI-powered analysis of your preparation progress"
+                    typewriterWords={[
+                        { text: "Analytics" },
+                        { text: "Insights", className: "text-indigo-300" },
+                    ]}
+                    helpText="Use this panel to identify weak subjects, overdue revisions, and targeted next actions."
+                    right={
+                        <Badge className="bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                            <NumberTicker value={weakAreas.length} className="text-indigo-200 mr-1" /> weak areas
+                        </Badge>
+                    }
                 />
                 <Card className="border-red-500/20 bg-red-500/5">
                     <CardContent className="pt-5 pb-5">
@@ -146,11 +160,26 @@ export default function AnalyticsPage() {
                 icon={<BarChart3 className="w-6 h-6 text-indigo-400" />}
                 title="Analytics & Insights"
                 subtitle="AI-powered analysis of your preparation progress"
+                typewriterWords={[
+                    { text: "Analytics" },
+                    { text: "Insights", className: "text-indigo-300" },
+                ]}
+                helpText="Recommendations below are generated from your completion trend, streak state, and revision load."
+                right={
+                    <div className="flex items-center gap-2">
+                        <Badge className="bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                            <NumberTicker value={weakAreas.length} className="text-indigo-200 mr-1" /> weak areas
+                        </Badge>
+                        <Badge className="bg-slate-900/70 text-slate-300 border border-slate-700">
+                            <NumberTicker value={metrics?.overallProgress || 0} className="text-slate-100 mr-1" />% complete
+                        </Badge>
+                    </div>
+                }
             />
 
             {/* AI Recommendations */}
             {recommendations.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <SectionReveal className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {recommendations.map((rec, i) => (
                         <motion.div
                             key={i}
@@ -171,65 +200,79 @@ export default function AnalyticsPage() {
                             </Card>
                         </motion.div>
                     ))}
-                </div>
+                </SectionReveal>
             )}
 
             {/* Subject Completion Chart */}
-            <Card className={APP_CARD_CLASS}>
-                <CardHeader>
-                    <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <TrendingDown className="w-5 h-5 text-indigo-400" />
-                        Subject Completion Analysis
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {subjectProgress.length === 0 ? (
-                        <p className="text-slate-500 text-center py-8">No data yet</p>
-                    ) : (
-                        <SubjectCompletionChart data={subjectProgress} />
-                    )}
-                </CardContent>
-            </Card>
+            <SectionReveal>
+                <Card className={APP_CARD_CLASS}>
+                    <CardHeader>
+                        <CardTitle className="text-white text-lg flex items-center gap-2">
+                            <TrendingDown className="w-5 h-5 text-indigo-400" />
+                            Subject Completion Analysis
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <button type="button" className="text-slate-500 hover:text-slate-300" aria-label="Analysis help">
+                                        <CircleHelp className="w-4 h-4" />
+                                    </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="border-slate-700 bg-slate-900 text-slate-200 text-xs">
+                                    This chart compares subject-level completion to reveal where your preparation is lagging.
+                                </PopoverContent>
+                            </Popover>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {subjectProgress.length === 0 ? (
+                            <p className="text-slate-500 text-center py-8">No data yet</p>
+                        ) : (
+                            <SubjectCompletionChart data={subjectProgress} />
+                        )}
+                    </CardContent>
+                </Card>
+            </SectionReveal>
 
             {/* Weak Areas List */}
-            <Card className={APP_CARD_CLASS}>
-                <CardHeader>
-                    <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <AlertTriangle className="w-5 h-5 text-red-400" />
-                        Weak Areas ({weakAreas.length})
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {weakAreas.length === 0 ? (
-                        <p className="text-green-400 text-sm text-center py-4">
-                            No weak areas. All subjects are above 50% completion.
-                        </p>
-                    ) : (
-                        <div className="space-y-3">
-                            {weakAreas.map((subject: { _id: string; name: string; icon: string; progress: number; total: number; completed: number; color: string }) => (
-                                <div
-                                    key={subject._id}
-                                    className="flex items-center gap-3 p-3 rounded-xl bg-red-500/5 border border-red-500/10"
-                                >
-                                    <span className="text-lg">{subject.icon}</span>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium text-white">{subject.name}</p>
-                                        <p className="text-xs text-slate-500">
-                                            {subject.completed}/{subject.total} subtopics completed
-                                        </p>
-                                    </div>
-                                    <Badge
-                                        variant="outline"
-                                        className="border-red-500/20 text-red-400"
+            <SectionReveal>
+                <Card className={APP_CARD_CLASS}>
+                    <CardHeader>
+                        <CardTitle className="text-white text-lg flex items-center gap-2">
+                            <AlertTriangle className="w-5 h-5 text-red-400" />
+                            Weak Areas ({weakAreas.length})
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {weakAreas.length === 0 ? (
+                            <p className="text-green-400 text-sm text-center py-4">
+                                No weak areas. All subjects are above 50% completion.
+                            </p>
+                        ) : (
+                            <div className="space-y-3">
+                                {weakAreas.map((subject: { _id: string; name: string; icon: string; progress: number; total: number; completed: number; color: string }) => (
+                                    <div
+                                        key={subject._id}
+                                        className="flex items-center gap-3 p-3 rounded-xl bg-red-500/5 border border-red-500/10"
                                     >
-                                        {subject.progress}%
-                                    </Badge>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                                        <span className="text-lg">{subject.icon}</span>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-white">{subject.name}</p>
+                                            <p className="text-xs text-slate-500">
+                                                {subject.completed}/{subject.total} subtopics completed
+                                            </p>
+                                        </div>
+                                        <Badge
+                                            variant="outline"
+                                            className="border-red-500/20 text-red-400"
+                                        >
+                                            {subject.progress}%
+                                        </Badge>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </SectionReveal>
         </div>
     );
 }

@@ -13,6 +13,9 @@ import type { SubjectItem } from "@/components/subjects/constants";
 import { PageHeader } from "@/components/common/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SectionReveal } from "@/components/common/section-reveal";
+import NumberTicker from "@/components/ui/number-ticker";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function SubjectsPage() {
   const { dbUser, user } = useAuth();
@@ -43,6 +46,11 @@ export default function SubjectsPage() {
                 icon={<BookOpen className="w-6 h-6 text-indigo-400" />}
                 title="Subjects"
                 subtitle="Manage your subjects, topics, and subtopics"
+                typewriterWords={[
+                    { text: "Subject" },
+                    { text: "Workspace", className: "text-indigo-300" },
+                ]}
+                helpText="Expand any subject to manage nested topics and subtopics with inline status and revision controls."
                 right={
                   <div className="flex items-center gap-2">
                     <Badge className={activeTrack === "sarkari" ? "bg-emerald-500/20 text-emerald-300" : "bg-indigo-500/20 text-indigo-300"}>
@@ -56,13 +64,33 @@ export default function SubjectsPage() {
                 }
             />
 
+      <SectionReveal className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Card className="bg-slate-900/50 border-slate-800/60">
+          <CardContent className="pt-5 pb-5">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Subjects in scope</p>
+            <p className="text-2xl font-semibold text-white mt-1">
+              <NumberTicker value={subjects.length} className="text-white" />
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="bg-slate-900/50 border-slate-800/60">
+          <CardContent className="pt-5 pb-5">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Active mode</p>
+            <p className="text-lg font-semibold text-white mt-1">
+              {activeTrack === "sarkari" ? `Sarkari - ${deptLabel}` : "Placement"}
+            </p>
+          </CardContent>
+        </Card>
+      </SectionReveal>
+
       {isLoading ? (
-        <div className="space-y-3">
+        <SectionReveal className="space-y-3">
           {[...Array(3)].map((_, i) => (
             <Skeleton key={i} className="h-24 rounded-2xl bg-slate-800/50" />
           ))}
-        </div>
+        </SectionReveal>
       ) : isError ? (
+        <SectionReveal>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -81,7 +109,9 @@ export default function SubjectsPage() {
             Retry
           </Button>
         </motion.div>
+        </SectionReveal>
       ) : subjects.length === 0 ? (
+        <SectionReveal>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -104,7 +134,9 @@ export default function SubjectsPage() {
             <AddSubjectDialog scopeKey={scopeKey} />
           </div>
         </motion.div>
+        </SectionReveal>
       ) : (
+        <SectionReveal>
         <motion.div
           initial="hidden"
           animate="visible"
@@ -117,6 +149,7 @@ export default function SubjectsPage() {
             <SubjectCard key={subject._id} subject={subject} scopeKey={scopeKey} />
           ))}
         </motion.div>
+        </SectionReveal>
       )}
     </div>
   );

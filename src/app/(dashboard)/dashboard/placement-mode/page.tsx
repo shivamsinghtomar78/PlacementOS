@@ -13,6 +13,8 @@ import { differenceInDays, format } from "date-fns";
 import { getClientScopeKey } from "@/lib/track-context";
 import { PageHeader } from "@/components/common/page-header";
 import { APP_CARD_CLASS } from "@/lib/ui-tokens";
+import NumberTicker from "@/components/ui/number-ticker";
+import { SectionReveal } from "@/components/common/section-reveal";
 
 export default function PlacementModePage() {
     const { dbUser, user, refreshDbUser, applyDbUser } = useAuth();
@@ -78,6 +80,11 @@ export default function PlacementModePage() {
                 icon={<Split className={`w-6 h-6 ${isPlacementActive ? "text-indigo-400" : "text-emerald-400"}`} />}
                 title="Mode Switch"
                 subtitle="Placement and Sarkari Nokari use isolated dashboards, streaks, and analytics."
+                typewriterWords={[
+                    { text: "Track" },
+                    { text: "Switch", className: isPlacementActive ? "text-indigo-300" : "text-emerald-300" },
+                ]}
+                helpText="Each mode maintains separate syllabus trees, progress stats, streaks, and analytics context."
                 right={
                     <Button
                         onClick={() => toggleMutation.mutate(isPlacementActive ? "sarkari" : "placement")}
@@ -93,13 +100,13 @@ export default function PlacementModePage() {
                 }
             />
 
-            <div className="flex gap-2">
+            <SectionReveal className="flex gap-2 flex-wrap">
                 <Badge className={isPlacementActive ? "bg-indigo-500/20 text-indigo-300" : "bg-slate-800 text-slate-400"}>Placement</Badge>
                 <Badge className={!isPlacementActive ? "bg-emerald-500/20 text-emerald-300" : "bg-slate-800 text-slate-400"}>Sarkari Nokari</Badge>
                 {!isPlacementActive && (
                     <Badge className="bg-slate-800 text-slate-300">{dbUser?.preferences?.sarkariDepartment || "mechanical"}</Badge>
                 )}
-            </div>
+            </SectionReveal>
 
             {toggleMutation.isError && (
                 <p className="text-sm text-red-300">
@@ -108,6 +115,7 @@ export default function PlacementModePage() {
             )}
 
             {isPlacementActive && (
+                <SectionReveal>
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -129,24 +137,27 @@ export default function PlacementModePage() {
                         </div>
                     </div>
                 </motion.div>
+                </SectionReveal>
             )}
 
             {isLoading ? (
-                <div className="space-y-3">
+                <SectionReveal className="space-y-3">
                     {[...Array(3)].map((_, i) => (
                         <Skeleton key={i} className="h-20 rounded-2xl bg-slate-800/50" />
                     ))}
-                </div>
+                </SectionReveal>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <SectionReveal className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Card className={APP_CARD_CLASS}>
                             <CardContent className="pt-6 flex items-center gap-4">
                                 <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
                                     <AlertTriangle className="w-5 h-5 text-red-400" />
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-bold text-white">{incompleteSubjects.length}</p>
+                                    <p className="text-2xl font-bold text-white">
+                                        <NumberTicker value={incompleteSubjects.length} className="text-white" />
+                                    </p>
                                     <p className="text-xs text-slate-400">Incomplete Subjects</p>
                                 </div>
                             </CardContent>
@@ -158,7 +169,9 @@ export default function PlacementModePage() {
                                     <Clock className="w-5 h-5 text-yellow-400" />
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-bold text-white">{metrics?.revisionDueCount || 0}</p>
+                                    <p className="text-2xl font-bold text-white">
+                                        <NumberTicker value={metrics?.revisionDueCount || 0} className="text-white" />
+                                    </p>
                                     <p className="text-xs text-slate-400">Revisions Due</p>
                                 </div>
                             </CardContent>
@@ -170,13 +183,16 @@ export default function PlacementModePage() {
                                     <CheckCircle className="w-5 h-5 text-green-400" />
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-bold text-white">{metrics?.overallProgress || 0}%</p>
+                                    <p className="text-2xl font-bold text-white">
+                                        <NumberTicker value={metrics?.overallProgress || 0} className="text-white" />%
+                                    </p>
                                     <p className="text-xs text-slate-400">Overall Progress</p>
                                 </div>
                             </CardContent>
                         </Card>
-                    </div>
+                    </SectionReveal>
 
+                    <SectionReveal>
                     <Card className={APP_CARD_CLASS}>
                         <CardHeader>
                             <CardTitle className="text-white text-lg flex items-center gap-2">
@@ -218,6 +234,7 @@ export default function PlacementModePage() {
                             )}
                         </CardContent>
                     </Card>
+                    </SectionReveal>
                 </>
             )}
         </div>

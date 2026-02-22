@@ -11,6 +11,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { motion } from "framer-motion";
 import { Target, Mail, Lock, Chrome, ArrowRight, Sparkles } from "lucide-react";
 import { AuroraBackground } from "@/components/ui/aurora-background";
+import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect";
+import { ShaderBackground } from "@/components/custom/shader-background";
+import { ScrollProgress } from "@/components/custom/scroll-progress";
+import NumberTicker from "@/components/ui/number-ticker";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -49,6 +53,8 @@ export default function LoginPage() {
 
     return (
         <AuroraBackground>
+            <ScrollProgress />
+            <ShaderBackground className="z-[1] opacity-70" />
             <div className="absolute inset-0 z-0 pointer-events-none">
                 {/* Background orbs */}
                 <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/8 rounded-full blur-3xl animate-float" />
@@ -74,10 +80,19 @@ export default function LoginPage() {
                     <h1 className="text-3xl font-bold text-white tracking-tight">
                         Placement<span className="text-indigo-400">OS</span>
                     </h1>
-                    <p className="text-slate-400 mt-2 flex items-center justify-center gap-1">
+                    <div className="mt-2 flex items-center justify-center gap-1 text-slate-400">
                         <Sparkles className="w-4 h-4 text-indigo-400" />
-                        Your Placement Command Center
-                    </p>
+                        <TypewriterEffectSmooth
+                            words={[
+                                { text: "Your" },
+                                { text: "Placement", className: "text-indigo-300" },
+                                { text: "Command" },
+                                { text: "Center", className: "text-cyan-300" },
+                            ]}
+                            className="my-0 text-sm"
+                            cursorClassName="h-4 bg-indigo-400"
+                        />
+                    </div>
                     <p className="text-[11px] text-slate-500 mt-2 uppercase tracking-widest">
                         Placement + Sarkari in one platform
                     </p>
@@ -171,6 +186,21 @@ export default function LoginPage() {
                             <Chrome className="mr-2 w-4 h-4" />
                             Google
                         </Button>
+
+                        <div className="mt-6 grid grid-cols-3 gap-2">
+                            {[
+                                { label: "Learners", value: 18500 },
+                                { label: "Sessions", value: 942000 },
+                                { label: "Tracks", value: 2 },
+                            ].map((item) => (
+                                <div key={item.label} className="rounded-lg border border-slate-800 bg-slate-900/60 px-2 py-2 text-center">
+                                    <p className="text-xs font-semibold text-white">
+                                        <NumberTicker value={item.value} className="text-white text-sm" />
+                                    </p>
+                                    <p className="text-[10px] uppercase tracking-wide text-slate-500 mt-1">{item.label}</p>
+                                </div>
+                            ))}
+                        </div>
 
                         <p className="text-center text-sm text-slate-500 mt-6">
                             Don&apos;t have an account?{" "}

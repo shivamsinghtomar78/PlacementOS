@@ -9,6 +9,11 @@ import { motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { getClientScopeKey } from "@/lib/track-context";
+import { Footer } from "@/components/layout/Footer";
+import { BackgroundGradientAnimation } from "@/components/ui/background-gradient-animation";
+import { ProgressiveBlur } from "@/components/custom/ProgressiveBlur";
+import { ShaderBackground } from "@/components/custom/shader-background";
+import { ScrollProgress } from "@/components/custom/scroll-progress";
 
 export default function DashboardLayout({
     children,
@@ -58,9 +63,29 @@ export default function DashboardLayout({
     if (!user) return null;
 
     return (
-        <div className="min-h-screen bg-slate-950 flex">
+        <div className="min-h-screen bg-slate-950 flex relative overflow-x-clip">
+            <ScrollProgress />
+            <div className="pointer-events-none absolute inset-0 z-0">
+                <BackgroundGradientAnimation
+                    gradientBackgroundStart="rgb(2, 6, 23)"
+                    gradientBackgroundEnd="rgb(2, 6, 23)"
+                    firstColor="79, 70, 229"
+                    secondColor="124, 58, 237"
+                    thirdColor="56, 189, 248"
+                    fourthColor="14, 116, 144"
+                    fifthColor="168, 85, 247"
+                    interactive={false}
+                    size="90%"
+                    blendingValue="hard-light"
+                    containerClassName="!absolute !inset-0 !h-full !w-full"
+                    className="opacity-20 mix-blend-screen"
+                />
+                <ShaderBackground className="opacity-60" />
+                <ProgressiveBlur direction="top" className="h-32 z-10" />
+                <ProgressiveBlur direction="bottom" className="h-44 z-10 top-auto bottom-0" />
+            </div>
             <Sidebar />
-            <div className="flex-1 flex flex-col min-h-screen lg:ml-72">
+            <div className="relative z-10 flex-1 flex flex-col min-h-screen lg:ml-72">
                 <Header />
                 <motion.main
                     initial={{ opacity: 0, y: 8 }}
@@ -70,6 +95,7 @@ export default function DashboardLayout({
                 >
                     {children}
                 </motion.main>
+                <Footer />
             </div>
         </div>
     );

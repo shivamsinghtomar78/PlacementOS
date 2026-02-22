@@ -17,6 +17,8 @@ import { format } from "date-fns";
 import { SARKARI_DEPARTMENTS, TrackMode } from "@/lib/track-context";
 import { PageHeader } from "@/components/common/page-header";
 import { APP_CARD_CLASS } from "@/lib/ui-tokens";
+import NumberTicker from "@/components/ui/number-ticker";
+import { SectionReveal } from "@/components/common/section-reveal";
 
 const COMPANIES = [
     "FAANG", "Amazon", "Google", "Meta", "Apple", "Netflix",
@@ -174,6 +176,16 @@ export default function SettingsPage() {
                 icon={<Settings className="w-6 h-6 text-indigo-400" />}
                 title="Settings"
                 subtitle="Configure profile, mode, and preparation preferences."
+                typewriterWords={[
+                    { text: "Settings" },
+                    { text: "Control", className: "text-indigo-300" },
+                ]}
+                helpText="Changes here update your profile, mode context, reminders, and target-company focus used across dashboards."
+                right={
+                    <Badge className="bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                        <NumberTicker value={targetCompanies.length} className="text-indigo-200 mr-1" /> targets
+                    </Badge>
+                }
             />
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -226,6 +238,33 @@ export default function SettingsPage() {
             {modeError && (
                 <p className="text-sm text-red-300">{modeError}</p>
             )}
+
+            <SectionReveal className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Card className={APP_CARD_CLASS}>
+                    <CardContent className="pt-4 pb-4">
+                        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Daily target</p>
+                        <p className="text-2xl font-semibold text-white mt-1">
+                            <NumberTicker value={dailyTarget} className="text-white" />
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card className={APP_CARD_CLASS}>
+                    <CardContent className="pt-4 pb-4">
+                        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Target companies</p>
+                        <p className="text-2xl font-semibold text-white mt-1">
+                            <NumberTicker value={targetCompanies.length} className="text-white" />
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card className={APP_CARD_CLASS}>
+                    <CardContent className="pt-4 pb-4">
+                        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Track mode</p>
+                        <p className="text-lg font-semibold text-white mt-1">
+                            {activeTrack === "placement" ? "Placement" : "Sarkari"}
+                        </p>
+                    </CardContent>
+                </Card>
+            </SectionReveal>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>

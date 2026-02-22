@@ -11,6 +11,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { motion } from "framer-motion";
 import { Target, Mail, Lock, User, Chrome, ArrowRight, Sparkles } from "lucide-react";
 import { AuroraBackground } from "@/components/ui/aurora-background";
+import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect";
+import { ShaderBackground } from "@/components/custom/shader-background";
+import { ScrollProgress } from "@/components/custom/scroll-progress";
+import NumberTicker from "@/components/ui/number-ticker";
 
 export default function SignUpPage() {
     const [name, setName] = useState("");
@@ -61,6 +65,8 @@ export default function SignUpPage() {
 
     return (
         <AuroraBackground>
+            <ScrollProgress />
+            <ShaderBackground className="z-[1] opacity-70" />
             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-500/8 rounded-full blur-3xl animate-float" />
             <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/8 rounded-full blur-3xl animate-float" />
 
@@ -82,10 +88,19 @@ export default function SignUpPage() {
                     <h1 className="text-3xl font-bold text-white tracking-tight">
                         Join Placement<span className="text-indigo-400">OS</span>
                     </h1>
-                    <p className="text-slate-400 mt-2 flex items-center justify-center gap-1">
+                    <div className="mt-2 flex items-center justify-center gap-1 text-slate-400">
                         <Sparkles className="w-4 h-4 text-indigo-400" />
-                        Start your preparation journey
-                    </p>
+                        <TypewriterEffectSmooth
+                            words={[
+                                { text: "Start" },
+                                { text: "your" },
+                                { text: "preparation", className: "text-indigo-300" },
+                                { text: "journey", className: "text-cyan-300" },
+                            ]}
+                            className="my-0 text-sm"
+                            cursorClassName="h-4 bg-indigo-400"
+                        />
+                    </div>
                     <p className="text-[11px] text-slate-500 mt-2 uppercase tracking-widest">
                         One account, two prep modes
                     </p>
@@ -207,6 +222,21 @@ export default function SignUpPage() {
                             <Chrome className="mr-2 w-4 h-4" />
                             Google
                         </Button>
+
+                        <div className="mt-6 grid grid-cols-3 gap-2">
+                            {[
+                                { label: "Syllabus", value: 128 },
+                                { label: "Daily Users", value: 4200 },
+                                { label: "Modes", value: 2 },
+                            ].map((item) => (
+                                <div key={item.label} className="rounded-lg border border-slate-800 bg-slate-900/60 px-2 py-2 text-center">
+                                    <p className="text-xs font-semibold text-white">
+                                        <NumberTicker value={item.value} className="text-white text-sm" />
+                                    </p>
+                                    <p className="text-[10px] uppercase tracking-wide text-slate-500 mt-1">{item.label}</p>
+                                </div>
+                            ))}
+                        </div>
 
                         <p className="text-center text-sm text-slate-500 mt-6">
                             Already have an account?{" "}
