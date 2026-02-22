@@ -3,331 +3,173 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion, useReducedMotion } from "framer-motion";
-import {
-  ArrowRight,
-  Target,
-  BarChart3,
-  Brain,
-  Repeat,
-  CircleHelp,
-  PlayCircle,
-} from "lucide-react";
+import { ArrowRight, BarChart3, Brain, Repeat, Target } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { ThreeDCardDemo } from "@/components/custom/ThreeDCardDemo";
-import { BackgroundGradientAnimation } from "@/components/ui/background-gradient-animation";
-import { ProgressiveBlur } from "@/components/custom/ProgressiveBlur";
-import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect";
+import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/layout/Footer";
-import { PinContainer } from "@/components/ui/3d-pin";
-import NumberTicker from "@/components/ui/number-ticker";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalTrigger,
-} from "@/components/ui/animated-modal";
-import { ShaderBackground } from "@/components/custom/shader-background";
-import { ScrollProgress } from "@/components/custom/scroll-progress";
-import { SectionReveal } from "@/components/common/section-reveal";
 
 const features = [
   {
     icon: Target,
-    label: "Track Progress",
-    desc: "Subject-wise completion tracking",
-    hint: "Follow completion at subject, topic, and subtopic level with live sync.",
+    title: "Progress Tracking",
+    description: "Track completion across subjects, topics, and subtopics without losing context.",
   },
   {
     icon: Brain,
-    label: "Smart Revision",
-    desc: "Spaced repetition system",
-    hint: "Revision cadence is tracked so weaker areas get surfaced earlier.",
+    title: "Revision Planning",
+    description: "Use spaced revision schedules to keep high-retention topics interview-ready.",
   },
   {
     icon: Repeat,
-    label: "Daily Streaks",
-    desc: "Build consistent habits",
-    hint: "Momentum streaks combine with daily goals to keep prep velocity high.",
+    title: "Habit Momentum",
+    description: "Build streak consistency with daily targets and overdue visibility.",
   },
   {
     icon: BarChart3,
-    label: "Analytics",
-    desc: "Visual progress insights",
-    hint: "Trends, heatmaps, and weak-area analysis help prioritize effort.",
+    title: "Actionable Analytics",
+    description: "Spot weak areas quickly and focus on what improves outcomes fastest.",
   },
 ];
 
-const quickStats = [
-  { label: "Learners", value: 18500, suffix: "+" },
-  { label: "Daily Sessions", value: 4200, suffix: "+" },
-  { label: "Tracked Topics", value: 1280, suffix: "+" },
-];
-
-const typewriterWords = [
-  { text: "Master" },
-  { text: "every" },
-  { text: "concept", className: "text-indigo-400 dark:text-indigo-400" },
-  { text: "before" },
-  { text: "the" },
-  { text: "interview", className: "text-violet-400 dark:text-violet-400" },
+const stats = [
+  { value: "18.5K+", label: "Active Learners" },
+  { value: "9.4L+", label: "Sessions Tracked" },
+  { value: "120+", label: "Subject Maps" },
 ];
 
 export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (!loading && user) {
       router.replace("/dashboard");
     }
-  }, [user, loading, router]);
+  }, [loading, router, user]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
-        <div className="w-10 h-10 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+      <div className="min-h-screen grid place-items-center bg-slate-950">
+        <div className="h-10 w-10 rounded-full border-2 border-indigo-500/25 border-t-indigo-400 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen relative flex flex-col bg-[#0a0a0f] overflow-hidden">
-      <ScrollProgress />
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-44 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-indigo-500/15 blur-[120px]" />
+          <div className="absolute right-[-8rem] top-24 h-64 w-64 rounded-full bg-cyan-500/10 blur-[100px]" />
+          <div className="absolute left-[-8rem] bottom-0 h-64 w-64 rounded-full bg-violet-500/10 blur-[100px]" />
+        </div>
 
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <BackgroundGradientAnimation
-          gradientBackgroundStart="rgb(10, 10, 15)"
-          gradientBackgroundEnd="rgb(15, 15, 25)"
-          firstColor="79, 70, 229"
-          secondColor="124, 58, 237"
-          thirdColor="6, 182, 212"
-          fourthColor="147, 51, 234"
-          fifthColor="59, 130, 246"
-          pointerColor="140, 100, 255"
-          size="100%"
-          blendingValue="hard-light"
-          className="absolute inset-0 opacity-40 mix-blend-screen"
-        />
-        <ShaderBackground className="opacity-80" />
-      </div>
-
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.03] z-[1]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-        }}
-        aria-hidden
-      />
-
-      <div className="relative z-20 flex min-h-screen flex-col">
-        <motion.nav
-          initial={reduceMotion ? false : { opacity: 0, y: -10 }}
-          animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="relative z-20 flex items-center justify-between px-6 sm:px-12 py-6"
-        >
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-              <Target className="w-4 h-4 text-indigo-400" />
-            </div>
-            <span className="text-lg font-semibold text-white tracking-tight">
-              Placement<span className="text-indigo-400">OS</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
+        <nav className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6 sm:px-8">
+          <p className="text-lg font-semibold tracking-tight text-white">
+            Placement<span className="text-indigo-400">OS</span>
+          </p>
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link href="/login">
-              <Button variant="ghost" className="text-slate-400 hover:text-white text-sm">
+              <Button variant="ghost" className="text-slate-300 hover:text-white">
                 Sign In
               </Button>
             </Link>
             <Link href="/signup">
-              <Button className="bg-indigo-500 hover:bg-indigo-600 text-white text-sm px-5">
-                Get Started
-              </Button>
+              <Button className="bg-indigo-500 text-white hover:bg-indigo-600">Get Started</Button>
             </Link>
           </div>
-        </motion.nav>
+        </nav>
 
-        <main className="relative z-10 flex-1 flex flex-col items-center px-6 text-center pb-12">
-          <SectionReveal className="max-w-3xl mx-auto space-y-6 mt-6">
-            <motion.div
-              initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }}
-              animate={reduceMotion ? undefined : { opacity: 1, scale: 1 }}
-              transition={{ delay: 0.15 }}
-            >
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/5 text-indigo-300 text-xs tracking-wide">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                Your placement prep, organized
+        <main className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-16 pt-4 sm:px-8 sm:pb-24">
+          <section className="grid items-center gap-8 lg:grid-cols-2">
+            <div>
+              <span className="inline-flex items-center rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs uppercase tracking-[0.16em] text-indigo-200">
+                Placement + Sarkari workspace
               </span>
-            </motion.div>
+              <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
+                Clean prep workflow for high-stakes interview seasons.
+              </h1>
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg">
+                Replace scattered notes and random trackers with one focused system for subjects, revision, and progress analytics.
+              </p>
 
-            <div className="flex justify-center w-full">
-              <TypewriterEffectSmooth
-                words={typewriterWords}
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl"
-                cursorClassName="bg-indigo-500"
-              />
+              <div className="mt-7 flex flex-wrap items-center gap-3">
+                <Link href="/signup">
+                  <Button className="h-11 bg-indigo-500 px-6 text-white hover:bg-indigo-600">
+                    Start Preparing <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="/login">
+                  <Button variant="outline" className="h-11 border-slate-700 bg-slate-900/60 text-slate-200 hover:bg-slate-800">
+                    I already have an account
+                  </Button>
+                </Link>
+              </div>
             </div>
 
-            <p className="text-base sm:text-lg text-slate-400 max-w-lg mx-auto leading-relaxed">
-              Track subjects, revise with spaced repetition, and build streaks.
-              Everything you need to crack your placement in one place.
-            </p>
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-[0_16px_40px_rgba(2,6,23,0.5)]">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-white">Preparation Snapshot</p>
+                <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-xs text-emerald-300">
+                  +12% week over week
+                </span>
+              </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-              <Link href="/signup">
-                <Button
-                  size="lg"
-                  className="bg-indigo-500 hover:bg-indigo-600 text-white text-sm px-8 h-12 gap-2 group"
-                >
-                  Start Preparing
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                </Button>
-              </Link>
-
-              <Modal>
-                <ModalTrigger className="border border-slate-700 bg-slate-900/70 text-slate-200 hover:bg-slate-800 text-sm px-6 py-3 rounded-xl flex items-center gap-2">
-                  <PlayCircle className="w-4 h-4" />
-                  Watch 3D Preview
-                </ModalTrigger>
-                <ModalBody className="bg-slate-950 border border-slate-800 text-white md:max-w-[44rem]">
-                  <ModalContent className="p-4 md:p-6">
-                    <h3 className="text-xl md:text-2xl font-semibold text-white text-center">
-                      Interactive Prep Surface
-                    </h3>
-                    <p className="text-sm text-slate-400 mt-2 text-center">
-                      Gesture-based 3D cards + live analytics for placement and Sarkari mode.
-                    </p>
-                    <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-900/70 p-3">
-                      <ThreeDCardDemo />
+              <div className="mt-5 space-y-4">
+                {[
+                  { label: "DSA", value: 74, tone: "from-indigo-500 to-indigo-300" },
+                  { label: "Core Subject", value: 61, tone: "from-cyan-500 to-cyan-300" },
+                  { label: "Aptitude", value: 82, tone: "from-emerald-500 to-emerald-300" },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <div className="mb-1 flex items-center justify-between text-sm">
+                      <span className="text-slate-300">{item.label}</span>
+                      <span className="text-slate-400">{item.value}%</span>
                     </div>
-                  </ModalContent>
-                  <ModalFooter className="bg-slate-950 border-t border-slate-800">
-                    <Link href="/signup">
-                      <Button className="bg-indigo-500 hover:bg-indigo-600 text-white">
-                        Create Account
-                      </Button>
-                    </Link>
-                  </ModalFooter>
-                </ModalBody>
-              </Modal>
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+                      <div className={`h-full rounded-full bg-gradient-to-r ${item.tone}`} style={{ width: `${item.value}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-              <Link href="/login">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-slate-800 text-slate-300 hover:bg-slate-800/50 hover:text-white text-sm px-8 h-12"
-                >
-                  I have an account
-                </Button>
-              </Link>
-            </div>
-          </SectionReveal>
-
-          <SectionReveal className="mt-12 max-w-2xl mx-auto w-full">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {quickStats.map((stat, idx) => (
-                <motion.div
-                  key={stat.label}
-                  initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-                  whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.4 }}
-                  transition={{ duration: 0.4, delay: idx * 0.08 }}
-                  className="rounded-2xl border border-slate-800/70 bg-slate-900/65 px-4 py-4 backdrop-blur-md"
-                >
-                  <p className="text-2xl font-semibold text-white tabular-nums">
-                    <NumberTicker value={stat.value} className="text-white" />
-                    {stat.suffix}
-                  </p>
-                  <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-slate-500">{stat.label}</p>
-                </motion.div>
-              ))}
-            </div>
-          </SectionReveal>
-
-          <SectionReveal className="mt-10 sm:mt-14 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-2xl mx-auto w-full">
-            {features.map((f, i) => (
-              <motion.div
-                key={f.label}
-                initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-                whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.35 }}
-                transition={{ delay: i * 0.08 }}
-                className="relative flex flex-col items-center gap-2 p-4 rounded-xl bg-slate-900/50 border border-slate-800/50 hover:border-slate-700/50 transition-colors"
-              >
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className="absolute right-2 top-2 text-slate-600 transition-colors hover:text-slate-300 hidden sm:inline-flex"
-                      aria-label={`About ${f.label}`}
-                    >
-                      <CircleHelp className="w-3.5 h-3.5" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="border-slate-700 bg-slate-900 text-slate-200 text-xs w-60">
-                    {f.hint}
-                  </PopoverContent>
-                </Popover>
-
-                <div className="w-9 h-9 rounded-lg bg-indigo-500/10 flex items-center justify-center">
-                  <f.icon className="w-4 h-4 text-indigo-400" />
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <div className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Today</p>
+                  <p className="mt-1 text-sm font-medium text-white">4 / 6 tasks done</p>
                 </div>
-                <span className="text-xs font-medium text-white">{f.label}</span>
-                <span className="text-[10px] text-slate-500 text-center leading-tight">{f.desc}</span>
-              </motion.div>
+                <div className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Revision Due</p>
+                  <p className="mt-1 text-sm font-medium text-white">9 items</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="mt-12 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {stats.map((stat) => (
+              <div key={stat.label} className="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-4">
+                <p className="text-2xl font-semibold text-white">{stat.value}</p>
+                <p className="mt-1 text-xs uppercase tracking-[0.14em] text-slate-500">{stat.label}</p>
+              </div>
             ))}
-          </SectionReveal>
+          </section>
 
-          <SectionReveal className="mt-20 w-full relative z-10">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-left max-w-4xl mx-auto">
-              <PinContainer title="Interview Mastery" href="/signup">
-                <div className="flex basis-[16rem] flex-col p-4 tracking-tight text-slate-100/50 sm:basis-[20rem] h-[12rem]">
-                  <h3 className="max-w-xs !pb-2 !m-0 font-bold text-base text-slate-100">
-                    Placement Mode
-                  </h3>
-                  <div className="text-base !m-0 !p-0 font-normal">
-                    <span className="text-slate-500">
-                      Deadline-driven prep with interview-focused analytics and company-specific tracks.
-                    </span>
-                  </div>
-                  <div className="flex flex-1 w-full rounded-lg mt-4 bg-gradient-to-br from-emerald-500 via-emerald-500/20 to-transparent" />
-                </div>
-              </PinContainer>
-
-              <PinContainer title="Government Exams" href="/signup">
-                <div className="flex basis-[16rem] flex-col p-4 tracking-tight text-slate-100/50 sm:basis-[20rem] h-[12rem]">
-                  <h3 className="max-w-xs !pb-2 !m-0 font-bold text-base text-slate-100">
-                    Sarkari Mode
-                  </h3>
-                  <div className="text-base !m-0 !p-0 font-normal">
-                    <span className="text-slate-500">
-                      Department-specific syllabus, PYQs, and isolated dashboard for government exam prep.
-                    </span>
-                  </div>
-                  <div className="flex flex-1 w-full rounded-lg mt-4 bg-gradient-to-br from-sky-500 via-sky-500/20 to-transparent" />
-                </div>
-              </PinContainer>
-            </div>
-          </SectionReveal>
-
+          <section className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {features.map((feature) => (
+              <div key={feature.title} className="rounded-xl border border-slate-800 bg-slate-900/55 px-5 py-5">
+                <feature.icon className="h-5 w-5 text-indigo-300" />
+                <h2 className="mt-3 text-lg font-medium text-white">{feature.title}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-slate-400">{feature.description}</p>
+              </div>
+            ))}
+          </section>
         </main>
-
-        <ProgressiveBlur
-          direction="top"
-          className="h-40 bottom-0 top-auto mt-[-10rem] z-20 pointer-events-none"
-        />
       </div>
 
       <Footer />
     </div>
   );
 }
+

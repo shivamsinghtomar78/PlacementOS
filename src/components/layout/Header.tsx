@@ -1,317 +1,290 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Menu, Bell, Search as SearchIcon, X, BriefcaseBusiness, Sparkles } from "lucide-react";
-import { MobileSidebar } from "./Sidebar";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api-client";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Bell, BriefcaseBusiness, Menu, Search as SearchIcon, Sparkles, X } from "lucide-react";
+
+import { useAuth } from "@/contexts/AuthContext";
+import { apiClient } from "@/lib/api-client";
 import { getClientScopeKey } from "@/lib/track-context";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MobileSidebar } from "@/components/layout/Sidebar";
 
 type SearchResult = {
-    id: string;
-    name: string;
-    type: "subject" | "topic" | "subtopic";
-    icon?: string;
-    link: string;
+  id: string;
+  name: string;
+  type: "subject" | "topic" | "subtopic";
+  icon?: string;
+  link: string;
 };
 
 type NotificationsResponse = {
-    notifications: Array<{
-        _id: string;
-        title: string;
-        message: string;
-        read: boolean;
-        createdAt: string;
-    }>;
+  notifications: Array<{
+    _id: string;
+    title: string;
+    message: string;
+    read: boolean;
+    createdAt: string;
+  }>;
 };
 
 function useDebouncedValue<T>(value: T, delay = 300) {
-    const [debounced, setDebounced] = useState(value);
+  const [debounced, setDebounced] = useState(value);
 
-    useEffect(() => {
-        const handle = setTimeout(() => setDebounced(value), delay);
-        return () => clearTimeout(handle);
-    }, [value, delay]);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [delay, value]);
 
-    return debounced;
+  return debounced;
 }
 
 export function Header() {
-    const { user, dbUser } = useAuth();
-    const [mobileOpen, setMobileOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [isSearching, setIsSearching] = useState(false);
-    const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 300);
-    const queryClient = useQueryClient();
-    const scopeKey = getClientScopeKey(dbUser?.preferences);
-    const activeTrack = dbUser?.preferences?.activeTrack || "placement";
-    const sarkariDept = dbUser?.preferences?.sarkariDepartment || "mechanical";
-    const sarkariDeptLabel = sarkariDept
-        .split("-")
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(" ");
+  const { user, dbUser } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 250);
+  const queryClient = useQueryClient();
+  const scopeKey = getClientScopeKey(dbUser?.preferences);
+  const activeTrack = dbUser?.preferences?.activeTrack || "placement";
+  const sarkariDept = dbUser?.preferences?.sarkariDepartment || "mechanical";
+  const sarkariDeptLabel = sarkariDept
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 
-    // Search query
-    const { data: searchData, isLoading: searchLoading } = useQuery({
-        queryKey: ["search", scopeKey, debouncedSearchQuery],
-        queryFn: async () => {
-            if (debouncedSearchQuery.length < 3) return { results: [] as SearchResult[] };
-            const res = await apiClient(`/api/search?q=${encodeURIComponent(debouncedSearchQuery)}`);
-            if (!res.ok) throw new Error("Search failed");
-            return (await res.json()) as { results: SearchResult[] };
-        },
-        enabled: !!dbUser?._id && !!user && debouncedSearchQuery.length > 2,
-        staleTime: 60_000,
-        refetchOnWindowFocus: false,
-    });
+  const { data: searchData, isLoading: searchLoading } = useQuery({
+    queryKey: ["search", scopeKey, debouncedSearchQuery],
+    queryFn: async () => {
+      if (debouncedSearchQuery.length < 3) return { results: [] as SearchResult[] };
+      const res = await apiClient(`/api/search?q=${encodeURIComponent(debouncedSearchQuery)}`);
+      if (!res.ok) throw new Error("Search failed");
+      return (await res.json()) as { results: SearchResult[] };
+    },
+    enabled: !!dbUser?._id && !!user && debouncedSearchQuery.length > 2,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const searchResults = searchData?.results ?? [];
 
-    const searchResults = searchData?.results ?? [];
+  const { data: notifyData } = useQuery({
+    queryKey: ["notifications", scopeKey],
+    queryFn: async () => {
+      const res = await apiClient("/api/notifications");
+      if (!res.ok) throw new Error("Failed to fetch notifications");
+      return (await res.json()) as NotificationsResponse;
+    },
+    refetchInterval: 60_000,
+    staleTime: 15_000,
+    enabled: !!dbUser?._id && !!user,
+  });
 
-    // Notifications query
-    const { data: notifyData } = useQuery({
-        queryKey: ["notifications", scopeKey],
-        queryFn: async () => {
-            const res = await apiClient("/api/notifications");
-            if (!res.ok) throw new Error("Failed to fetch notifications");
-            return (await res.json()) as NotificationsResponse;
-        },
-        refetchInterval: 60000,
-        staleTime: 15_000,
-        enabled: !!dbUser?._id && !!user,
-    });
+  const notifications = notifyData?.notifications || [];
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
-    const notifications = notifyData?.notifications || [];
-    const unreadCount = notifications.filter((n) => !n.read).length;
+  const readMutation = useMutation({
+    mutationFn: async (notificationId: string) => {
+      const res = await apiClient("/api/notifications", {
+        method: "PATCH",
+        body: JSON.stringify({ notificationId, action: "markAsRead" }),
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications", scopeKey] });
+    },
+  });
 
-    const readMutation = useMutation({
-        mutationFn: async (notificationId: string) => {
-            const res = await apiClient("/api/notifications", {
-                method: "PATCH",
-                body: JSON.stringify({ notificationId, action: "markAsRead" }),
-            });
-            return res.json();
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["notifications", scopeKey] });
-        },
-    });
+  return (
+    <>
+      <header className="sticky top-0 z-30 border-b border-slate-800/80 bg-slate-950/95 px-4 py-3 backdrop-blur-sm lg:px-6">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileOpen(true)}
+              className="lg:hidden text-slate-400 hover:text-white hover:bg-slate-800"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
 
-    return (
-        <>
-            <header className="sticky top-0 z-30 h-16 flex items-center justify-between px-4 lg:px-6 bg-slate-950/40 backdrop-blur-md border-b border-white/[0.05] shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setMobileOpen(true)}
-                        className="lg:hidden text-slate-400 hover:text-white hover:bg-white/5"
-                    >
-                        <Menu className="w-5 h-5" />
-                    </Button>
+            <div className="relative hidden sm:block">
+              <div className="flex w-[320px] items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
+                <SearchIcon className="h-4 w-4 text-slate-500" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearching(true)}
+                  placeholder="Search subjects, topics, subtopics..."
+                  className="w-full bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-500"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    className="text-slate-500 hover:text-white"
+                    onClick={() => setSearchQuery("")}
+                    aria-label="Clear search"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                ) : null}
+              </div>
 
-                    <div className="relative group">
-                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/50 border border-white/10 text-slate-500 text-sm w-64 focus-within:ring-2 focus-within:ring-indigo-500/30 focus-within:border-indigo-500/50 focus-within:bg-slate-900 transition-all duration-300">
-                            <SearchIcon className="w-4 h-4 transition-colors group-focus-within:text-indigo-400" />
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onFocus={() => setIsSearching(true)}
-                                placeholder="Search everything..."
-                                className="bg-transparent border-none outline-none text-white w-full placeholder:text-slate-500 placeholder:font-light"
-                            />
-                            {searchQuery && (
-                                <button onClick={() => setSearchQuery("")} className="hover:scale-110 transition-transform">
-                                    <X className="w-3.5 h-3.5 hover:text-white" />
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Search Results Dropdown */}
-                        <AnimatePresence>
-                            {isSearching && debouncedSearchQuery.length > 2 && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    className="absolute top-full left-0 mt-2 w-full max-w-[350px] bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 p-1"
-                                >
-                                    <div className="max-h-[400px] overflow-y-auto p-1 space-y-1">
-                                        {searchLoading && (
-                                            <p className="text-xs text-slate-500 p-3 italic">Searching...</p>
-                                        )}
-                                        {!searchLoading && searchResults.length === 0 && (
-                                            <p className="text-xs text-slate-500 p-3">No results found</p>
-                                        )}
-                                        {searchResults.map((result, idx) => (
-                                            <motion.div
-                                                key={result.id}
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: idx * 0.05 }}
-                                            >
-                                                <Link
-                                                    href={result.link}
-                                                    onClick={() => {
-                                                        setSearchQuery("");
-                                                        setIsSearching(false);
-                                                    }}
-                                                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all duration-200 group/item"
-                                                >
-                                                    <div className={cn(
-                                                        "w-9 h-9 rounded-xl flex items-center justify-center text-sm transition-transform duration-300 group-hover/item:scale-110",
-                                                        result.type === "subject" ? "bg-indigo-500/10 text-indigo-400" : "bg-slate-800 text-slate-300"
-                                                    )}>
-                                                        {result.icon || "??"}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-medium text-white/90 truncate group-hover/item:text-white">{result.name}</p>
-                                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">{result.type}</p>
-                                                    </div>
-                                                </Link>
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <div className="hidden md:flex items-center gap-2">
-                        <Badge className={cn(
-                            "border px-2.5 py-1 text-[10px] uppercase tracking-wider",
-                            activeTrack === "placement"
-                                ? "bg-indigo-500/15 text-indigo-300 border-indigo-500/30"
-                                : "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                        )}>
-                            {activeTrack === "placement" ? (
-                                <>
-                                    <Sparkles className="w-3 h-3 mr-1" /> Placement
-                                </>
-                            ) : (
-                                <>
-                                    <BriefcaseBusiness className="w-3 h-3 mr-1" /> Sarkari
-                                </>
-                            )}
-                        </Badge>
-                        {activeTrack === "sarkari" && (
-                            <Badge className="bg-slate-900/70 text-slate-300 border border-slate-700 text-[10px] uppercase tracking-wider">
-                                {sarkariDeptLabel}
-                            </Badge>
-                        )}
-                    </div>
-
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-slate-400 hover:text-white hover:bg-white/5 relative transition-all duration-300 active:scale-90"
-                            >
-                                <Bell className="w-5 h-5 transition-transform duration-300 group-hover:rotate-12" />
-                                {unreadCount > 0 && (
-                                    <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full border-2 border-slate-950 shadow-[0_0_10px_rgba(99,102,241,0.8)]" />
-                                )}
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-80 bg-slate-900 border-slate-700 p-0 overflow-hidden shadow-2xl">
-                            <div className="p-4 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between">
-                                <h3 className="text-sm font-semibold text-white">Notifications</h3>
-                                {unreadCount > 0 && (
-                                    <Badge variant="outline" className="text-[10px] border-indigo-500 text-indigo-400">
-                                        {unreadCount} New
-                                    </Badge>
-                                )}
-                            </div>
-                            <div className="max-h-[300px] overflow-y-auto">
-                                {notifications.length === 0 ? (
-                                    <div className="p-8 text-center">
-                                        <Bell className="w-8 h-8 text-slate-700 mx-auto mb-2" />
-                                        <p className="text-xs text-slate-500">No notifications yet</p>
-                                    </div>
-                                ) : (
-                                    notifications.map((n) => (
-                                        <div
-                                            key={n._id}
-                                            onClick={() => !n.read && readMutation.mutate(n._id)}
-                                            className={cn(
-                                                "p-4 border-b border-slate-800/50 cursor-pointer transition-colors group relative",
-                                                !n.read ? "bg-indigo-500/5 hover:bg-indigo-500/10" : "hover:bg-slate-800"
-                                            )}
-                                        >
-                                            {!n.read && (
-                                                <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-indigo-500 rounded-full" />
-                                            )}
-                                            <div className="flex justify-between items-start mb-1">
-                                                <p className={cn("text-xs font-semibold", !n.read ? "text-white" : "text-slate-400")}>
-                                                    {n.title}
-                                                </p>
-                                                <span className="text-[10px] text-slate-600">
-                                                    {new Date(n.createdAt).toLocaleDateString()}
-                                                </span>
-                                            </div>
-                                            <p className="text-xs text-slate-500 line-clamp-2">{n.message}</p>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                            {notifications.length > 0 && (
-                                <div className="p-2 border-t border-slate-800 bg-slate-900/50">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="w-full text-xs text-slate-500 hover:text-white"
-                                        onClick={() => {
-                                            apiClient("/api/notifications", {
-                                                method: "PATCH",
-                                                body: JSON.stringify({ action: "markAllAsRead" }),
-                                            }).then(() => queryClient.invalidateQueries({ queryKey: ["notifications", scopeKey] }));
-                                        }}
-                                    >
-                                        Mark all as read
-                                    </Button>
-                                </div>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    <div className="flex items-center gap-2">
-                        <Avatar className="w-8 h-8">
-                            <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-xs font-bold">
-                                {(dbUser?.name || user?.displayName || "U")[0].toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
-                        <span className="hidden sm:block text-sm font-medium text-white">
-                            {dbUser?.name || user?.displayName || "User"}
+              {isSearching && debouncedSearchQuery.length > 2 ? (
+                <div className="absolute left-0 top-full z-50 mt-2 w-full rounded-lg border border-slate-800 bg-slate-900 shadow-xl">
+                  <div className="max-h-[320px] overflow-y-auto p-1">
+                    {searchLoading ? (
+                      <p className="px-3 py-2 text-xs text-slate-500">Searching...</p>
+                    ) : null}
+                    {!searchLoading && searchResults.length === 0 ? (
+                      <p className="px-3 py-2 text-xs text-slate-500">No results found.</p>
+                    ) : null}
+                    {searchResults.map((result) => (
+                      <Link
+                        key={result.id}
+                        href={result.link}
+                        onClick={() => {
+                          setSearchQuery("");
+                          setIsSearching(false);
+                        }}
+                        className="flex items-center gap-3 rounded-md px-3 py-2 hover:bg-slate-800/80"
+                      >
+                        <span className="grid h-8 w-8 place-items-center rounded-md bg-slate-800 text-xs text-slate-300">
+                          {result.icon || "•"}
                         </span>
-                    </div>
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm text-slate-100">{result.name}</span>
+                          <span className="block text-[11px] uppercase tracking-wide text-slate-500">
+                            {result.type}
+                          </span>
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2">
+              <Badge
+                className={cn(
+                  "border px-2.5 py-1 text-[10px] uppercase tracking-wide",
+                  activeTrack === "placement"
+                    ? "border-indigo-500/30 bg-indigo-500/15 text-indigo-300"
+                    : "border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
+                )}
+              >
+                {activeTrack === "placement" ? (
+                  <>
+                    <Sparkles className="mr-1 h-3 w-3" /> Placement
+                  </>
+                ) : (
+                  <>
+                    <BriefcaseBusiness className="mr-1 h-3 w-3" /> Sarkari
+                  </>
+                )}
+              </Badge>
+              {activeTrack === "sarkari" ? (
+                <Badge className="border border-slate-700 bg-slate-900/70 text-[10px] uppercase tracking-wide text-slate-300">
+                  {sarkariDeptLabel}
+                </Badge>
+              ) : null}
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative text-slate-400 hover:text-white hover:bg-slate-800">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 ? (
+                    <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-indigo-400" />
+                  ) : null}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80 border-slate-800 bg-slate-900 p-0">
+                <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+                  <h3 className="text-sm font-medium text-white">Notifications</h3>
+                  {unreadCount > 0 ? (
+                    <Badge variant="outline" className="border-indigo-500/40 text-indigo-300">
+                      {unreadCount} new
+                    </Badge>
+                  ) : null}
                 </div>
 
-                {/* Click outside search to close */}
-                {isSearching && (
-                    <div
-                        className="fixed inset-0 z-40 bg-transparent"
-                        onClick={() => setIsSearching(false)}
-                    />
-                )}
-            </header>
+                <div className="max-h-[300px] overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <p className="px-4 py-5 text-xs text-slate-500">No notifications yet.</p>
+                  ) : (
+                    notifications.map((notification) => (
+                      <button
+                        type="button"
+                        key={notification._id}
+                        onClick={() => !notification.read && readMutation.mutate(notification._id)}
+                        className={cn(
+                          "w-full border-b border-slate-800 px-4 py-3 text-left transition-colors",
+                          notification.read ? "hover:bg-slate-800/60" : "bg-indigo-500/5 hover:bg-indigo-500/10"
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <p className={cn("text-xs font-medium", notification.read ? "text-slate-300" : "text-white")}>
+                            {notification.title}
+                          </p>
+                          <span className="text-[10px] text-slate-500">
+                            {new Date(notification.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="mt-1 line-clamp-2 text-xs text-slate-500">{notification.message}</p>
+                      </button>
+                    ))
+                  )}
+                </div>
 
-            <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
-        </>
-    );
+                {notifications.length > 0 ? (
+                  <div className="border-t border-slate-800 p-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-xs text-slate-400 hover:text-white"
+                      onClick={() => {
+                        apiClient("/api/notifications", {
+                          method: "PATCH",
+                          body: JSON.stringify({ action: "markAllAsRead" }),
+                        }).then(() => queryClient.invalidateQueries({ queryKey: ["notifications", scopeKey] }));
+                      }}
+                    >
+                      Mark all as read
+                    </Button>
+                  </div>
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {isSearching ? (
+          <button
+            type="button"
+            aria-label="Close search panel"
+            className="fixed inset-0 z-20 bg-transparent"
+            onClick={() => setIsSearching(false)}
+          />
+        ) : null}
+      </header>
+
+      <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
+    </>
+  );
 }
 

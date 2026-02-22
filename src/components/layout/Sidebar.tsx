@@ -2,280 +2,160 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BarChart3, BookOpen, LayoutDashboard, LogOut, Settings, Target, X, Zap } from "lucide-react";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-    LayoutDashboard,
-    BookOpen,
-    BarChart3,
-    Target,
-    Settings,
-    LogOut,
-    X,
-    Zap,
-    ChevronLeft,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useState } from "react";
 
 const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/dashboard/subjects", label: "Subjects", icon: BookOpen },
-    { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-    { href: "/dashboard/placement-mode", label: "Placement Mode", icon: Zap },
-    { href: "/dashboard/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/subjects", label: "Subjects", icon: BookOpen },
+  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/dashboard/placement-mode", label: "Mode Switch", icon: Zap },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
+function NavContent({
+  pathname,
+  onNavigate,
+}: {
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  return (
+    <nav className="mt-5 space-y-1">
+      {navItems.map((item) => {
+        const isActive =
+          item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href);
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+              isActive
+                ? "bg-indigo-500/15 text-indigo-200 border border-indigo-500/30"
+                : "text-slate-400 hover:bg-slate-800/70 hover:text-white"
+            )}
+          >
+            <item.icon className="h-4.5 w-4.5 shrink-0" />
+            <span>{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 export function Sidebar() {
-    const pathname = usePathname();
-    const { user, dbUser, signOut } = useAuth();
-    const [collapsed, setCollapsed] = useState(false);
+  const pathname = usePathname();
+  const { user, dbUser, signOut } = useAuth();
 
-    return (
-        <>
-            {/* Desktop Sidebar */}
-            <motion.aside
-                initial={false}
-                animate={{ width: collapsed ? 80 : 288 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 bg-slate-900/95 backdrop-blur-xl border-r border-slate-800/50 z-40"
-            >
-                {/* Logo */}
-                <div className="flex items-center justify-between h-16 px-4 border-b border-slate-800/50">
-                    <AnimatePresence mode="wait">
-                        {!collapsed && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="flex items-center gap-3"
-                            >
-                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                                    <Target className="w-5 h-5 text-white" />
-                                </div>
-                                <div>
-                                    <h1 className="text-lg font-bold text-white tracking-tight">
-                                        Placement<span className="text-indigo-400">OS</span>
-                                    </h1>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                    {collapsed && (
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center mx-auto">
-                            <Target className="w-5 h-5 text-white" />
-                        </div>
-                    )}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setCollapsed(!collapsed)}
-                        className="text-slate-400 hover:text-white hover:bg-slate-800 shrink-0"
-                    >
-                        <ChevronLeft
-                            className={cn(
-                                "w-4 h-4 transition-transform duration-300",
-                                collapsed && "rotate-180"
-                            )}
-                        />
-                    </Button>
-                </div>
+  return (
+    <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-slate-800/80 bg-slate-950/95 lg:flex lg:flex-col">
+      <div className="border-b border-slate-800/80 px-5 py-4">
+        <div className="flex items-center gap-2">
+          <div className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-500/20">
+            <Target className="h-4 w-4 text-indigo-300" />
+          </div>
+          <p className="text-base font-semibold text-white tracking-tight">
+            Placement<span className="text-indigo-400">OS</span>
+          </p>
+        </div>
+      </div>
 
-                {/* Navigation */}
-                <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                    {navItems.map((item, index) => {
-                        const isActive =
-                            item.href === "/dashboard"
-                                ? pathname === "/dashboard"
-                                : pathname.startsWith(item.href);
-                        return (
-                            <Link key={item.href} href={item.href}>
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    whileHover={{ x: 4, backgroundColor: "rgba(255, 255, 255, 0.05)" }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className={cn(
-                                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden",
-                                        isActive
-                                            ? "bg-indigo-500/10 text-indigo-400 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]"
-                                            : "text-slate-400 hover:text-white"
-                                    )}
-                                >
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="activeNav"
-                                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-r-full shadow-[0_0_10px_rgba(99,102,241,0.5)]"
-                                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                        />
-                                    )}
-                                    <item.icon className={cn(
-                                        "w-5 h-5 shrink-0 transition-transform duration-300 group-hover:scale-110",
-                                        isActive && "text-indigo-400 drop-shadow-[0_0_3px_rgba(99,102,241,0.5)]"
-                                    )} />
-                                    <AnimatePresence mode="wait">
-                                        {!collapsed && (
-                                            <motion.span
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                exit={{ opacity: 0, x: -10 }}
-                                                className="whitespace-nowrap overflow-hidden"
-                                            >
-                                                {item.label}
-                                            </motion.span>
-                                        )}
-                                    </AnimatePresence>
-                                </motion.div>
-                            </Link>
-                        );
-                    })}
+      <div className="flex-1 overflow-y-auto px-3 py-3">
+        <NavContent pathname={pathname} />
+      </div>
 
-                </nav>
-
-                {/* User Section */}
-                <div className="p-3 border-t border-slate-800/50 bg-slate-900/50 backdrop-blur-md">
-                    <div className={cn("flex items-center gap-3 px-3 py-2 rounded-xl transition-colors hover:bg-white/5", collapsed && "justify-center")}>
-                        <Avatar className="w-9 h-9 shrink-0 ring-2 ring-indigo-500/20 ring-offset-2 ring-offset-slate-900">
-                            <AvatarFallback className="bg-gradient-to-br from-indigo-500 via-violet-600 to-fuchsia-600 text-white text-xs font-bold neo-glow">
-                                {(dbUser?.name || user?.displayName || "U")[0].toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
-                        <AnimatePresence mode="wait">
-                            {!collapsed && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="flex-1 min-w-0"
-                                >
-                                    <p className="text-sm font-medium text-white truncate">
-                                        {dbUser?.name || user?.displayName || "User"}
-                                    </p>
-                                    <p className="text-xs text-slate-500 truncate">
-                                        {user?.email}
-                                    </p>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                        {!collapsed && (
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={signOut}
-                                className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 shrink-0"
-                            >
-                                <LogOut className="w-4 h-4" />
-                            </Button>
-                        )}
-                    </div>
-                </div>
-            </motion.aside>
-
-            {/* Mobile Sidebar Overlay - handled by Header MobileNav */}
-        </>
-    );
+      <div className="border-t border-slate-800/80 px-4 py-4">
+        <div className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-900/60 p-2">
+          <Avatar className="h-9 w-9">
+            <AvatarFallback className="bg-indigo-500/20 text-indigo-100 text-xs font-semibold">
+              {(dbUser?.name || user?.displayName || "U")[0].toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-white">{dbUser?.name || user?.displayName || "User"}</p>
+            <p className="truncate text-xs text-slate-500">{user?.email}</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={signOut}
+            className="text-slate-500 hover:text-red-300 hover:bg-red-500/10"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </aside>
+  );
 }
 
 export function MobileSidebar({
-    open,
-    onClose,
+  open,
+  onClose,
 }: {
-    open: boolean;
-    onClose: () => void;
+  open: boolean;
+  onClose: () => void;
 }) {
-    const pathname = usePathname();
-    const { user, dbUser, signOut } = useAuth();
+  const pathname = usePathname();
+  const { user, dbUser, signOut } = useAuth();
 
-    return (
-        <AnimatePresence>
-            {open && (
-                <>
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={onClose}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden"
-                    />
-                    <motion.aside
-                        initial={{ x: -320 }}
-                        animate={{ x: 0 }}
-                        exit={{ x: -320 }}
-                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                        className="fixed left-0 top-0 bottom-0 w-72 bg-slate-900 border-r border-slate-800/50 z-50 lg:hidden flex flex-col"
-                    >
-                        <div className="flex items-center justify-between h-16 px-4 border-b border-slate-800/50">
-                            <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-                                    <Target className="w-5 h-5 text-white" />
-                                </div>
-                                <h1 className="text-lg font-bold text-white">
-                                    Placement<span className="text-indigo-400">OS</span>
-                                </h1>
-                            </div>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={onClose}
-                                className="text-slate-400 hover:text-white"
-                            >
-                                <X className="w-5 h-5" />
-                            </Button>
-                        </div>
+  if (!open) return null;
 
-                        <nav className="flex-1 px-3 py-4 space-y-1">
-                            {navItems.map((item) => {
-                                const isActive =
-                                    item.href === "/dashboard"
-                                        ? pathname === "/dashboard"
-                                        : pathname.startsWith(item.href);
-                                return (
-                                    <Link key={item.href} href={item.href} onClick={onClose}>
-                                        <div
-                                            className={cn(
-                                                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                                                isActive
-                                                    ? "bg-indigo-500/10 text-indigo-400"
-                                                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
-                                            )}
-                                        >
-                                            <item.icon className="w-5 h-5" />
-                                            <span>{item.label}</span>
-                                        </div>
-                                    </Link>
-                                );
-                            })}
+  return (
+    <div className="fixed inset-0 z-50 lg:hidden">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/60"
+        aria-label="Close sidebar"
+        onClick={onClose}
+      />
+      <aside className="relative h-full w-72 border-r border-slate-800 bg-slate-950 p-4">
+        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+          <div className="flex items-center gap-2">
+            <div className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-500/20">
+              <Target className="h-4 w-4 text-indigo-300" />
+            </div>
+            <p className="text-base font-semibold text-white tracking-tight">
+              Placement<span className="text-indigo-400">OS</span>
+            </p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-slate-400 hover:text-white">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
 
-                        </nav>
+        <NavContent pathname={pathname} onNavigate={onClose} />
 
-                        <div className="p-3 border-t border-slate-800/50">
-                            <div className="flex items-center gap-3 px-3 py-2">
-                                <Avatar className="w-8 h-8">
-                                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-xs font-bold">
-                                        {(dbUser?.name || user?.displayName || "U")[0].toUpperCase()}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-white truncate">
-                                        {dbUser?.name || user?.displayName || "User"}
-                                    </p>
-                                </div>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={signOut}
-                                    className="text-slate-400 hover:text-red-400"
-                                >
-                                    <LogOut className="w-4 h-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    </motion.aside>
-                </>
-            )}
-        </AnimatePresence>
-    );
+        <div className="mt-5 border-t border-slate-800/80 pt-4">
+          <div className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-900/60 p-2">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="bg-indigo-500/20 text-indigo-100 text-xs font-semibold">
+                {(dbUser?.name || user?.displayName || "U")[0].toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-white">{dbUser?.name || user?.displayName || "User"}</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={signOut}
+              className="text-slate-500 hover:text-red-300 hover:bg-red-500/10"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  );
 }
+
