@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { Target, Mail, Lock, User, Chrome, ArrowRight, Sparkles } from "lucide-react";
+import { AuroraBackground } from "@/components/ui/aurora-background";
 
 export default function SignUpPage() {
     const [name, setName] = useState("");
@@ -59,7 +60,7 @@ export default function SignUpPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 relative overflow-hidden">
+        <AuroraBackground>
             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-500/8 rounded-full blur-3xl animate-float" />
             <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/8 rounded-full blur-3xl animate-float" />
 
@@ -219,6 +220,6 @@ export default function SignUpPage() {
                     </CardContent>
                 </Card>
             </motion.div>
-        </div>
+        </AuroraBackground>
     );
 }

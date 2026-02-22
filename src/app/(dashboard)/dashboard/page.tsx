@@ -22,6 +22,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import dynamic from "next/dynamic";
 import { getClientScopeKey } from "@/lib/track-context";
+import NumberTicker from "@/components/ui/number-ticker";
+import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalTrigger } from "@/components/ui/animated-modal";
 
 type SubjectProgress = {
     _id: string;
@@ -45,18 +48,33 @@ const CurriculumFocusChart = dynamic(
     { ssr: false, loading: () => <Skeleton className="h-[230px] w-full bg-slate-800/50" /> }
 );
 
-// Animated number counter
+// Ticker wrapper
 function AnimatedNumber({ value }: { value: number }) {
     return (
-        <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            key={value}
-        >
-            {value}
-        </motion.span>
+        <NumberTicker value={value} className="text-white" />
     );
 }
+
+const studyGroup = [
+    {
+        id: 1,
+        name: "Shivam",
+        designation: "Founder",
+        image: "https://github.com/shadcn.png",
+    },
+    {
+        id: 2,
+        name: "Abhishek",
+        designation: "Preparation Lead",
+        image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
+    },
+    {
+        id: 3,
+        name: "Saurabh",
+        designation: "Sarkari Aspirant",
+        image: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop",
+    },
+];
 
 // Circular progress component
 function CircularProgress({ progress, size = 120, strokeWidth = 10 }: {
@@ -243,23 +261,71 @@ export default function DashboardPage() {
         <div className="space-y-6">
             {/* Page Title */}
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-                <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900/70 via-slate-900/40 to-transparent px-5 py-4">
-                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                        <h1 className="text-2xl font-bold text-white">Control Center</h1>
-                        <span className={cn(
-                            "text-[10px] uppercase tracking-wider border rounded-full px-2.5 py-1",
-                            metrics?.track === "sarkari"
-                                ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
-                                : "border-indigo-500/30 bg-indigo-500/15 text-indigo-300"
-                        )}>
-                            {metrics?.track === "sarkari" ? "Sarkari Mode" : "Placement Mode"}
-                        </span>
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                            <h1 className="text-2xl font-bold text-white tracking-tight">Control Center</h1>
+                            <span className={cn(
+                                "text-[10px] uppercase tracking-wider border rounded-full px-2.5 py-1",
+                                metrics?.track === "sarkari"
+                                    ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
+                                    : "border-indigo-500/30 bg-indigo-500/15 text-indigo-300"
+                            )}>
+                                {metrics?.track === "sarkari" ? "Sarkari Mode" : "Placement Mode"}
+                            </span>
+                        </div>
+                        <p className="text-slate-400 text-sm">
+                            {metrics?.track === "sarkari"
+                                ? `Department: ${(metrics?.department || "mechanical").toUpperCase()}`
+                                : "Track your placement preparation progress"}
+                        </p>
                     </div>
-                    <p className="text-slate-400 text-sm">
-                        {metrics?.track === "sarkari"
-                            ? `Department: ${(metrics?.department || "mechanical").toUpperCase()}`
-                            : "Track your placement preparation progress"}
-                    </p>
+
+                    <div className="flex items-center gap-4">
+                        <div className="flex flex-row items-center justify-center mb-0 w-full">
+                            <AnimatedTooltip items={studyGroup} />
+                        </div>
+
+                        <Modal>
+                            <ModalTrigger className="bg-white/10 dark:bg-white/10 text-white flex justify-center group/modal-btn border border-white/10 px-6 py-2">
+                                <span className="group-hover/modal-btn:translate-x-40 text-center transition duration-500 text-sm font-medium">
+                                    Quick Actions
+                                </span>
+                                <div className="-translate-x-40 group-hover/modal-btn:translate-x-0 flex items-center justify-center absolute inset-0 transition duration-500 text-white z-20">
+                                    🚀
+                                </div>
+                            </ModalTrigger>
+                            <ModalBody>
+                                <ModalContent>
+                                    <h4 className="text-lg md:text-2xl text-neutral-600 dark:text-neutral-100 font-bold text-center mb-8">
+                                        Placement command center is{" "}
+                                        <span className="px-1 py-0.5 rounded-md bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 border border-gray-200">
+                                            Active
+                                        </span>{" "}
+                                        now! 🚀
+                                    </h4>
+                                    <div className="flex justify-center items-center gap-4 mt-4">
+                                        <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-center">
+                                            <Target className="w-8 h-8 text-indigo-400 mx-auto mb-2" />
+                                            <p className="text-sm font-medium text-white">Daily Target</p>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                                            <Flame className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+                                            <p className="text-sm font-medium text-white">Focus Session</p>
+                                        </div>
+                                    </div>
+                                </ModalContent>
+                                <ModalFooter className="gap-4">
+                                    <button className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">
+                                        Dismiss
+                                    </button>
+                                    <button className="bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-600 transition-colors">
+                                        Configure Dashboard
+                                    </button>
+                                </ModalFooter>
+                            </ModalBody>
+                        </Modal>
+                    </div>
                 </div>
             </motion.div>
 

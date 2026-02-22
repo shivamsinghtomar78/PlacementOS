@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { Target, Mail, Lock, Chrome, ArrowRight, Sparkles } from "lucide-react";
+import { AuroraBackground } from "@/components/ui/aurora-background";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -47,11 +48,13 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 relative overflow-hidden">
-            {/* Background orbs */}
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/8 rounded-full blur-3xl animate-float" />
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-500/8 rounded-full blur-3xl animate-float" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-3xl" />
+        <AuroraBackground>
+            <div className="absolute inset-0 z-0 pointer-events-none">
+                {/* Background orbs */}
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/8 rounded-full blur-3xl animate-float" />
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-500/8 rounded-full blur-3xl animate-float" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-3xl" />
+            </div>
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -181,7 +184,7 @@ export default function LoginPage() {
                     </CardContent>
                 </Card>
             </motion.div>
-        </div>
+        </AuroraBackground>
     );
 }
 
